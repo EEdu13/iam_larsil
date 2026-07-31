@@ -4,8 +4,13 @@
 > tabelas `IAM_*` direto, nem crie tabela de login/usuário própria. A tabela é detalhe interno;
 > a API é o contrato. É isso que impede a volta da bagunça de "uma tabela de usuário por sistema".
 
-A IAM roda em **`http://localhost:4000`** (configurável — use uma env `IAM_URL`).
+A IAM (Painel ADM Larsil) roda em:
+- **Produção:** `https://painelgestor.up.railway.app`
+- **Local:** `http://localhost:4000`
+
+Aponte sempre por uma env `IAM_URL` — nunca cravar a URL no código.
 Autenticação por **JWT** (HS256). O token traz identidade + papéis + permissões + escopo.
+Console da TI (gerenciar quem vê o quê): `<IAM_URL>/admin`.
 
 ---
 
@@ -120,20 +125,45 @@ Quando `senha_provisoria` for true, colete e envie:
 
 ---
 
-## 5. Registrar o SEU sistema na IAM (feito pelo dono da IAM, não pelo consumidor)
+## 5. Registrar o SEU sistema na IAM (feito pela TI/dono da IAM, não pelo consumidor)
 
 Sistema novo = **1 linha em `IAM_SISTEMAS` + N linhas em `IAM_PERMISSOES`** — nunca tabela de login.
-Peça ao dono da IAM para rodar algo como:
+(Hoje só existem os sistemas `PCP` e `IAM`; os mocks de exemplo foram removidos. Cadastre o seu do zero.)
+
 ```sql
 INSERT INTO iam.IAM_SISTEMAS (CODIGO, NOME, URL_BASE) VALUES ('TAREFAS', 'Gerador de Tarefas', 'https://…');
+
+-- Permissões de AÇÃO (pode ou não fazer):
 INSERT INTO iam.IAM_PERMISSOES (CODIGO, SISTEMA_CODIGO, DESCRICAO) VALUES
-  ('tarefas.acesso',    'TAREFAS', 'Entrar no sistema'),
-  ('tarefas.criar',     'TAREFAS', 'Criar tarefa'),
-  ('tarefas.mencionar', 'TAREFAS', 'Mencionar colega');
--- e ligar aos papéis que já ganham por padrão (IAM_PAPEL_PERMISSOES)
+  ('tarefas.acesso', 'TAREFAS', 'Entrar no sistema'),
+  ('tarefas.criar',  'TAREFAS', 'Criar tarefa');
 ```
-As permissões `tarefas.*` já existem de exemplo. A pessoa só passa a "ter" a permissão quando o
-papel dela concede (ou por exceção individual) — isso é atribuído na tela **Usuários & Acessos** da IAM.
+
+### 5.1 Telas (a parte "igual ao PCP")
+Cada **tela/rota** do seu front vira uma permissão no padrão **`<sistema>.tela:<rota>`**, com um
+**`GRUPO`** (o nome da aba/menu). É isso que faz a tela aparecer **agrupada no console da TI**, onde
+ela libera/nega por pessoa e define o escopo — exatamente como fizemos no PCP:
+```sql
+INSERT INTO iam.IAM_PERMISSOES (CODIGO, SISTEMA_CODIGO, DESCRICAO, GRUPO) VALUES
+  ('tarefas.tela:/',         'TAREFAS', 'Painel',        'Início'),
+  ('tarefas.tela:/tarefas',  'TAREFAS', 'Minhas tarefas','Tarefas'),
+  ('tarefas.tela:/relatorios','TAREFAS','Relatórios',    'Relatórios');
+```
+No seu front, monte o menu a partir das `permissoes` que vêm no token: mostre a rota só se
+`permissoes.includes("tarefas.tela:/rota")` (mesma regra do `temAba` do PCP). Negar no console → some
+no próximo `resolve`/F5.
+
+### 5.2 Ligar aos papéis (quem já ganha por padrão)
+```sql
+-- ex.: todo mundo do papel COORDENADOR já entra e vê as telas base
+INSERT INTO iam.IAM_PAPEL_PERMISSOES (PAPEL_ID, PERMISSAO_CODIGO)
+SELECT p.ID, v.cod FROM iam.IAM_PAPEIS p
+CROSS APPLY (VALUES ('tarefas.acesso'),('tarefas.tela:/'),('tarefas.tela:/tarefas')) v(cod)
+WHERE p.NOME IN ('GERENCIA','COORDENADOR','SUPERVISOR','TI');
+```
+A pessoa só "tem" a permissão quando o papel concede (ou por exceção individual). Ajuste fino
+(liberar/negar tela por pessoa, definir escopo COORDENADOR/SUPERVISOR/EQUIPE/PROJETO) é tudo na tela
+**Usuários & Acessos** do console `/admin` — sem tocar em SQL.
 
 ---
 
