@@ -12,6 +12,7 @@ const cors = require("cors");
 
 const authRoutes = require("./auth/auth-routes.cjs");
 const adminRoutes = require("./auth/admin-routes.cjs");
+const registryRoutes = require("./auth/registry-routes.cjs");
 
 const app = express();
 app.use(cors({ origin: true, credentials: true }));
@@ -21,6 +22,7 @@ app.get("/api/health", (_req, res) => res.json({ ok: true, servico: "iam-larsil"
 
 app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/registry", registryRoutes); // auto-registro de sistemas consumidores (X-Registry-Key)
 
 // tela de administração (estática) em /admin
 app.use("/admin", express.static(path.join(__dirname, "..", "public", "admin")));

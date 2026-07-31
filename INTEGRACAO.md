@@ -125,7 +125,44 @@ Quando `senha_provisoria` for true, colete e envie:
 
 ---
 
-## 5. Registrar o SEU sistema na IAM (feito pela TI/dono da IAM, não pelo consumidor)
+## 5. Plugar o SEU sistema na IAM — auto-registro por API (o jeito recomendado)
+
+O sistema consumidor **declara ele mesmo** o próprio sistema + telas/permissões, via API. Aparece
+sozinho no console `/admin` da TI — **sem ninguém rodar SQL e sem tocar no schema**. Você (dev) chama
+uma vez no deploy (ou sempre que mudar suas telas); a IAM faz o upsert.
+
+**A TI configura UMA vez** (no Railway) a env `REGISTRY_KEYS` — um JSON `sistema → chave` — e te passa
+a SUA chave. Ex.: `REGISTRY_KEYS={"TAREFAS":"<chave-secreta>"}`. Sua chave só mexe no SEU sistema.
+
+### `POST /api/registry/sync`  (header `X-Registry-Key: <sua-chave>`)
+```json
+{
+  "nome": "Gerador de Tarefas",
+  "url_base": "https://tarefas.larsil.com.br",
+  "modo": "sync",
+  "permissoes": [
+    { "codigo": "tarefas.acesso",          "descricao": "Entrar no sistema" },
+    { "codigo": "tarefas.tela:/",          "descricao": "Painel",         "grupo": "Início" },
+    { "codigo": "tarefas.tela:/tarefas",   "descricao": "Minhas tarefas", "grupo": "Tarefas" },
+    { "codigo": "tarefas.tela:/relatorios","descricao": "Relatórios",     "grupo": "Relatórios" }
+  ]
+}
+```
+Regras (validadas pela IAM):
+- Toda permissão precisa ser do **namespace do seu sistema**: `tarefas.…` (não dá pra criar `pcp.*`).
+- **Telas** seguem `tarefas.tela:<rota>` + `grupo` (a aba do menu) → ficam agrupadas no console, iguais
+  às do PCP, prontas pra TI liberar/negar por pessoa e definir escopo.
+- `modo: "merge"` (padrão) só cria/atualiza. `modo: "sync"` também **remove** as suas permissões que
+  não vierem no manifesto (o manifesto vira a fonte da verdade). Só afeta o SEU sistema.
+- `PCP` e `IAM` são reservados: a API recusa.
+
+**Resposta** `200 { ok, sistema, criadas, atualizadas, removidas, permissoes_totais }`.
+Confira o estado atual com `GET /api/registry/me` (mesma chave).
+
+Depois do sync, quem libera cada tela pra cada pessoa e define o escopo
+(COORDENADOR/SUPERVISOR/EQUIPE/PROJETO) é a TI, na tela **Usuários & Acessos** do `/admin` — sem SQL.
+
+<details><summary>Alternativa manual (SQL, feito pela TI) — se preferir não usar a API</summary>
 
 Sistema novo = **1 linha em `IAM_SISTEMAS` + N linhas em `IAM_PERMISSOES`** — nunca tabela de login.
 (Hoje só existem os sistemas `PCP` e `IAM`; os mocks de exemplo foram removidos. Cadastre o seu do zero.)
@@ -165,6 +202,8 @@ A pessoa só "tem" a permissão quando o papel concede (ou por exceção individ
 (liberar/negar tela por pessoa, definir escopo COORDENADOR/SUPERVISOR/EQUIPE/PROJETO) é tudo na tela
 **Usuários & Acessos** do console `/admin` — sem tocar em SQL.
 
+</details>
+
 ---
 
 ## 6. Checklist do projeto novo
@@ -173,7 +212,7 @@ A pessoa só "tem" a permissão quando o papel concede (ou por exceção individ
 - [ ] Backend valida o **JWT** em toda rota (seção 2) — não confia no cliente
 - [ ] Permissão checada por `permissoes.includes("sistema.acao")`
 - [ ] Escopo aplicado pelo helper único (seção 3), lendo do token — nunca da query
-- [ ] Sistema + permissões registrados na IAM (seção 5)
+- [ ] Sistema + telas auto-registrados via `POST /api/registry/sync` (seção 5)
 - [ ] Trata `senha_provisoria` (onboarding) e o `403 INATIVO` (mensagem "procure a TI")
 
 ---
