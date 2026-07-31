@@ -1,0 +1,696 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Painel ADM Larsil · Acessos</title>
+<style>
+  :root{
+    --canvas:#f2f4f7; --card:#ffffff; --card-2:#f8fafb;
+    --line:#e2e6ea; --line-2:#eef1f4;
+    --ink:#14171c; --ink-2:#525963; --ink-3:#8b929c;
+    --accent:#0f7a54; --accent-d:#0b5c40; --tint:#e7f4ef; --tint-2:#f1faf5;
+    --amber:#8a5a00; --amber-t:#fbf1de; --danger:#c0362c; --danger-t:#fbe9e7;
+    --hd:#0e5d40;
+    --r:10px; --r-sm:7px;
+    --sh:0 1px 2px rgba(16,24,32,.06),0 1px 1px rgba(16,24,32,.04);
+    --sh-md:0 4px 14px -4px rgba(16,32,24,.14);
+    --sh-lg:0 24px 60px -18px rgba(16,32,24,.35);
+    --fs:-apple-system,"Segoe UI",system-ui,Roboto,Arial,sans-serif;
+    --mono:"Cascadia Code","Consolas",ui-monospace,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{font-family:var(--fs);background:var(--canvas);color:var(--ink);font-size:14px;line-height:1.45;-webkit-font-smoothing:antialiased}
+  .mono{font-family:var(--mono)}
+  button{font-family:inherit;cursor:pointer}
+  .hidden{display:none !important}
+  ::-webkit-scrollbar{width:11px;height:11px}
+  ::-webkit-scrollbar-thumb{background:#cdd3d9;border-radius:7px;border:3px solid transparent;background-clip:padding-box}
+  ::-webkit-scrollbar-thumb:hover{background:#b6bdc5;background-clip:padding-box}
+  .eyebrow{font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--accent)}
+
+  .btn{border:1px solid var(--line);background:var(--card);color:var(--ink);padding:8px 14px;border-radius:var(--r-sm);font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:7px;transition:.12s;white-space:nowrap;box-shadow:var(--sh)}
+  .btn:hover{background:#f4f6f8;border-color:#d3d8de}
+  .btn.pri{background:var(--accent);border-color:var(--accent);color:#fff}
+  .btn.pri:hover{background:var(--accent-d)}
+  .btn.danger{color:var(--danger);border-color:#eccac6;background:var(--card)}
+  .btn.danger:hover{background:var(--danger-t)}
+  .btn.ghost{box-shadow:none;background:transparent;border-color:transparent;color:var(--ink-2)}
+  .btn.ghost:hover{background:#eef1f4;color:var(--ink)}
+  .btn.sm{padding:6px 11px;font-size:12.5px}
+  .btn:disabled{opacity:.45;cursor:default;box-shadow:none}
+
+  /* LOGIN */
+  #loginView{min-height:100%;display:grid;place-items:center;padding:24px;background:radial-gradient(1100px 520px at 50% -8%,#e8f4ee,transparent 60%),var(--canvas)}
+  .login-card{width:376px;max-width:100%;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:34px 30px;box-shadow:var(--sh-lg)}
+  .mark{width:46px;height:46px;border-radius:12px;display:grid;place-items:center;background:linear-gradient(135deg,#15916a,#0c5a40);color:#fff;font-weight:800;font-size:22px;margin-bottom:18px}
+  .login-card h1{margin:0;font-size:23px;font-weight:700;letter-spacing:-.02em}
+  .login-card .sub{color:var(--ink-2);font-size:13px;margin:3px 0 22px}
+  .field{margin-bottom:15px}
+  .field label{display:block;font-size:12px;font-weight:600;color:var(--ink-2);margin-bottom:6px}
+  .inp{width:100%;padding:10px 12px;background:var(--card);border:1px solid var(--line);border-radius:var(--r-sm);font-size:14px;font-family:inherit;color:var(--ink);outline:none;transition:.12s}
+  .inp::placeholder{color:var(--ink-3)}
+  .inp:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--tint)}
+  select.inp{cursor:pointer}
+  .err{color:var(--danger);font-size:12.5px;font-weight:600;min-height:16px}
+
+  /* SHELL */
+  #appView{min-height:100%;display:flex;flex-direction:column}
+  .topbar{height:54px;display:flex;align-items:center;gap:12px;padding:0 18px;background:var(--hd);color:#fff;position:sticky;top:0;z-index:20}
+  .topbar .mark{width:30px;height:30px;border-radius:8px;margin:0;background:rgba(255,255,255,.16);font-size:15px}
+  .topbar .brand{font-weight:700;font-size:15px}
+  .topbar .brand span{color:rgba(255,255,255,.72);font-weight:400;margin-left:9px;font-size:13px}
+  .topbar .who{margin-left:auto;font-size:12.5px;color:rgba(255,255,255,.82);display:flex;align-items:center;gap:12px}
+  .topbar .who .nm{color:#fff;font-weight:600}
+  .topbar .who .btn{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.22);color:#fff;box-shadow:none}
+  .topbar .who .btn:hover{background:rgba(255,255,255,.2)}
+
+  .body{flex:1;display:flex;min-height:0}
+  .rail{width:214px;flex-shrink:0;padding:14px 10px;background:var(--card);border-right:1px solid var(--line)}
+  .rail .eyebrow{padding:10px 12px 6px;color:var(--ink-3)}
+  .rail a{display:flex;align-items:center;gap:11px;padding:9px 12px;border-radius:var(--r-sm);color:var(--ink-2);font-size:13.5px;font-weight:600;text-decoration:none;cursor:pointer;position:relative}
+  .rail a:hover{background:#f2f4f6;color:var(--ink)}
+  .rail a.active{background:var(--tint);color:var(--accent-d)}
+  .rail a.active::before{content:"";position:absolute;left:0;top:8px;bottom:8px;width:3px;border-radius:3px;background:var(--accent)}
+  .rail a .ico{width:16px;height:16px;flex-shrink:0}
+
+  .main{flex:1;min-width:0;overflow:auto}
+  .page{padding:26px 30px 60px;max-width:1120px}
+  .page>.eyebrow{display:block;margin-bottom:8px}
+  .page h2{margin:0 0 5px;font-size:25px;font-weight:700;letter-spacing:-.02em}
+  .page .lead{color:var(--ink-2);font-size:13.5px;margin:0 0 22px;max-width:62ch}
+
+  .cmd{display:flex;gap:11px;align-items:center;flex-wrap:wrap;margin-bottom:16px}
+  .search{position:relative;flex:1;min-width:250px;max-width:440px}
+  .search .inp{padding-left:36px;box-shadow:var(--sh)}
+  .search svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--ink-3)}
+  select.inp.filter{width:auto;padding:9px 12px;box-shadow:var(--sh)}
+  .count{margin-left:auto;font-size:12.5px;color:var(--ink-3);font-weight:600}
+
+  .grid-wrap{background:var(--card);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;box-shadow:var(--sh)}
+  table{width:100%;border-collapse:collapse}
+  thead th{text-align:left;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-3);padding:11px 16px;border-bottom:1px solid var(--line);background:var(--card-2)}
+  tbody td{padding:11px 16px;border-bottom:1px solid var(--line-2);font-size:13.5px}
+  tbody tr:last-child td{border-bottom:0}
+  tbody tr{cursor:pointer}
+  tbody tr:hover{background:var(--tint-2)}
+  tbody tr.sel{background:var(--tint)}
+  .nm{font-weight:600}
+  .sub2{color:var(--ink-3);font-size:12px;font-family:var(--mono)}
+
+  .chip{display:inline-flex;align-items:center;gap:5px;padding:2.5px 10px;border-radius:999px;font-size:11.5px;font-weight:600;white-space:nowrap;border:1px solid transparent}
+  .chip.ok{background:var(--tint);color:var(--accent-d);border-color:#c3e6d5}
+  .chip.warn{background:var(--amber-t);color:var(--amber);border-color:#ecd9ae}
+  .chip.no{background:var(--danger-t);color:var(--danger);border-color:#eec7c2}
+  .chip.mut{background:#eef1f4;color:var(--ink-2);border-color:var(--line)}
+  .node{width:9px;height:9px;border-radius:50%;display:inline-block;flex-shrink:0}
+  .node.on{background:var(--accent);box-shadow:0 0 0 3px var(--tint)}
+  .node.off{background:#cdd3d9}
+
+  .pager{display:flex;gap:9px;align-items:center;margin-top:14px;font-size:12.5px;color:var(--ink-3);font-weight:600}
+
+  /* ══ DRAWER ══ */
+  .scrim{position:fixed;inset:0;background:rgba(20,28,24,.35);z-index:40;opacity:0;pointer-events:none;transition:.16s}
+  .scrim.show{opacity:1;pointer-events:auto}
+  .drawer{position:fixed;top:0;right:0;height:100%;width:min(560px,100%);z-index:41;background:var(--canvas);border-left:1px solid var(--line);box-shadow:var(--sh-lg);transform:translateX(100%);transition:transform .2s cubic-bezier(.2,.85,.25,1);display:flex;flex-direction:column}
+  .drawer.show{transform:none}
+  /* topo fixo do drawer */
+  .dw-top{background:var(--card);border-bottom:1px solid var(--line);flex-shrink:0}
+  .dw-head{padding:18px 20px 14px;display:flex;gap:14px;align-items:center}
+  .avatar{width:48px;height:48px;border-radius:50%;flex-shrink:0;display:grid;place-items:center;font-weight:700;font-size:17px;color:#fff;background:linear-gradient(135deg,#15916a,#0c5a40)}
+  .dw-id{min-width:0;flex:1}
+  .dw-id h3{margin:0;font-size:18px;font-weight:700;letter-spacing:-.02em;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .dw-id .meta{color:var(--ink-2);font-size:12.5px;margin-top:3px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .dw-head .x{background:var(--card);border:1px solid var(--line);color:var(--ink-2);width:32px;height:32px;border-radius:8px;font-size:14px;box-shadow:var(--sh);flex-shrink:0}
+  .dw-head .x:hover{background:#f2f4f6}
+  .dw-actions{display:flex;align-items:center;gap:9px;padding:0 20px 14px}
+  .dw-actions .status{margin-right:auto;font-size:12px;color:var(--ink-2);display:flex;align-items:center;gap:7px}
+  .dw-tabs{display:flex;gap:2px;padding:0 12px;border-top:1px solid var(--line-2)}
+  .dw-tabs button{border:0;background:transparent;padding:12px 14px;font-size:13px;font-weight:600;color:var(--ink-2);border-bottom:2.5px solid transparent;margin-bottom:-1px}
+  .dw-tabs button:hover{color:var(--ink)}
+  .dw-tabs button.on{color:var(--accent-d);border-bottom-color:var(--accent)}
+  .dw-body{flex:1;overflow:auto;padding:20px}
+
+  .block{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);margin-bottom:16px}
+  .block .bh{padding:13px 16px 0}
+  .block .bh h4{margin:0;font-size:14px;font-weight:700;letter-spacing:-.01em}
+  .block .bh p{margin:4px 0 0;color:var(--ink-2);font-size:12px;line-height:1.5}
+  .block .bc{padding:14px 16px}
+  .row{display:flex;gap:9px;align-items:center;flex-wrap:wrap}
+
+  .dl{display:grid;grid-template-columns:auto 1fr;gap:8px 14px;font-size:13px}
+  .dl dt{color:var(--ink-3);font-weight:600;font-size:12px;align-self:center}
+  .dl dd{margin:0}
+
+  .tag{display:inline-flex;align-items:center;gap:7px;background:#f2f4f6;border:1px solid var(--line);border-radius:7px;padding:5px 7px 5px 11px;font-size:12.5px;font-weight:600}
+  .tag.esc{background:var(--tint);border-color:#c3e6d5;color:var(--accent-d)}
+  .tag button{background:transparent;border:0;color:var(--ink-3);font-size:14px;line-height:1;padding:0 2px}
+  .tag button:hover{color:var(--danger)}
+  .addrow{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;align-items:center}
+  .addrow .inp{width:auto;flex:1;min-width:120px;padding:8px 10px}
+  .addrow select.inp{flex:0 0 auto}
+
+  /* barra de sistemas */
+  .sysbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+  .systab{display:flex;align-items:center;gap:8px;padding:9px 14px;border:1px solid var(--line);border-radius:9px;background:var(--card);color:var(--ink-2);font-size:13px;font-weight:600;cursor:pointer;transition:.12s;box-shadow:var(--sh)}
+  .systab:hover{border-color:#cdd3d9;color:var(--ink)}
+  .systab.on{border-color:var(--accent);color:var(--accent-d);background:var(--tint);box-shadow:0 0 0 1px var(--accent) inset}
+  .systab .cnt{font-size:11.5px;font-weight:700;color:var(--ink-3)}
+  .systab.on .cnt{color:var(--accent-d)}
+
+  .telas{border:1px solid var(--line);border-radius:var(--r);overflow:hidden;background:var(--card);box-shadow:var(--sh)}
+  .telas .th{display:flex;align-items:center;justify-content:space-between;padding:10px 15px;background:var(--card-2);border-bottom:1px solid var(--line);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3)}
+  .telarow{display:flex;align-items:center;gap:12px;padding:10px 15px;border-top:1px solid var(--line-2)}
+  .telarow:first-of-type{border-top:0}
+  .telarow:hover{background:var(--tint-2)}
+  .telarow .lbl{flex:1;min-width:0}
+  .telarow .lbl .t{font-size:13.5px;font-weight:500}
+  .telarow .lbl small{display:block;font-family:var(--mono);font-size:10px;color:var(--ink-3);margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;flex-shrink:0}
+  .seg button{border:0;background:var(--card);padding:6px 11px;font-size:11.5px;font-weight:600;color:var(--ink-2);border-left:1px solid var(--line);transition:.1s}
+  .seg button:first-child{border-left:0}
+  .seg button:hover{background:#f2f4f6}
+  .seg button.on.herd{background:#5b626b;color:#fff}
+  .seg button.on.lib{background:var(--accent);color:#fff}
+  .seg button.on.neg{background:var(--danger);color:#fff}
+
+  .treinorow{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-top:1px solid var(--line-2)}
+  .treinorow:first-child{border-top:0}
+  .switch{position:relative;width:42px;height:23px;border-radius:999px;background:#cdd3d9;border:0;transition:.14s;flex-shrink:0}
+  .switch.on{background:var(--accent)}
+  .switch::after{content:"";position:absolute;top:2px;left:2px;width:19px;height:19px;border-radius:50%;background:#fff;transition:.14s;box-shadow:0 1px 2px rgba(0,0,0,.2)}
+  .switch.on::after{left:21px}
+
+  .perm{display:inline-block;font-family:var(--mono);font-size:10.5px;background:#f2f4f6;border:1px solid var(--line);border-radius:6px;padding:2px 8px;margin:0 5px 5px 0;color:var(--ink-2)}
+  .hint{color:var(--ink-2);font-size:12.5px;line-height:1.5}
+
+  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:15px}
+  .scard{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:18px;box-shadow:var(--sh)}
+  .scard h3{margin:0 0 3px;font-size:16px;font-weight:700;display:flex;align-items:center;gap:9px;letter-spacing:-.01em}
+  .scard .code{font-family:var(--mono);font-size:11px;color:var(--ink-3)}
+  .scard .telaline{padding:5px 0;font-size:13px;border-top:1px solid var(--line-2);display:flex;justify-content:space-between;gap:10px}
+  .scard .telaline:first-of-type{border-top:0;margin-top:12px}
+  .empty{padding:44px;text-align:center;color:var(--ink-3);font-size:13px}
+
+  #toast{position:fixed;right:22px;bottom:22px;z-index:60;background:var(--card);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:12px;box-shadow:var(--sh-lg);padding:16px 18px;max-width:380px;transform:translateY(14px);opacity:0;pointer-events:none;transition:.18s}
+  #toast.show{transform:none;opacity:1;pointer-events:auto}
+  #toast .senha{font-family:var(--mono);font-size:22px;font-weight:700;letter-spacing:.06em;color:#fff;background:var(--accent-d);padding:6px 12px;border-radius:8px;display:inline-block;margin:8px 0}
+
+  @media(max-width:720px){.rail{display:none}.page{padding:20px 16px}.drawer{width:100%}}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginView">
+  <form class="login-card" id="loginForm">
+    <div class="mark">L</div>
+    <h1>Painel ADM Larsil</h1>
+    <div class="sub">Console de identidade e acessos</div>
+    <div class="field"><label>Login</label><input class="inp" id="lUser" autocomplete="username" placeholder="nome.sobrenome" /></div>
+    <div class="field"><label>Senha</label><input class="inp" id="lPass" type="password" autocomplete="current-password" /></div>
+    <button class="btn pri" style="width:100%;justify-content:center;height:42px;margin-top:6px;font-size:14px">Entrar</button>
+    <div class="err" id="lErr" style="margin-top:12px"></div>
+  </form>
+</div>
+
+<!-- APP -->
+<div id="appView" class="hidden">
+  <div class="topbar">
+    <div class="mark">L</div>
+    <div class="brand">Painel ADM Larsil<span>identidade &amp; acessos</span></div>
+    <div class="who"><span class="nm" id="whoName"></span><button class="btn sm" id="btnSair">Sair</button></div>
+  </div>
+  <div class="body">
+    <nav class="rail">
+      <div class="eyebrow">Administração</div>
+      <a data-sec="usuarios" class="active"><svg class="ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="8" cy="5" r="2.6"/><path d="M3 13.5c0-2.5 2.2-4 5-4s5 1.5 5 4"/></svg>Usuários</a>
+      <a data-sec="sistemas"><svg class="ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2.5" y="2.5" width="11" height="4" rx="1"/><rect x="2.5" y="9.5" width="11" height="4" rx="1"/></svg>Sistemas</a>
+      <a data-sec="papeis"><svg class="ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M8 2l5 3v3.5c0 3-2.2 4.7-5 5.5-2.8-.8-5-2.5-5-5.5V5z"/></svg>Papéis</a>
+    </nav>
+    <main class="main">
+      <section id="secUsuarios" class="page">
+        <span class="eyebrow">Diretório</span>
+        <h2>Usuários</h2>
+        <p class="lead">Crie a senha de acesso e libere as telas de cada sistema — por pessoa, uma a uma.</p>
+        <div class="cmd">
+          <div class="search">
+            <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5L14 14"/></svg>
+            <input class="inp" id="busca" placeholder="Buscar por nome, login, CPF ou matrícula" />
+          </div>
+          <select id="estado" class="inp filter">
+            <option value="">Todos os estados</option>
+            <option value="PENDENTE_CONFIGURACAO">Pendentes</option>
+            <option value="ATIVO">Ativos</option>
+          </select>
+          <span class="count" id="count"></span>
+        </div>
+        <div class="grid-wrap">
+          <table>
+            <thead><tr><th>Nome</th><th>Login</th><th>CPF / Matrícula</th><th>Estado</th><th>Senha</th><th>Ativo</th></tr></thead>
+            <tbody id="tbody"></tbody>
+          </table>
+        </div>
+        <div class="pager">
+          <button class="btn sm" id="prev">‹ Anterior</button>
+          <button class="btn sm" id="next">Próximo ›</button>
+          <span id="pag"></span>
+        </div>
+      </section>
+
+      <section id="secSistemas" class="page hidden">
+        <span class="eyebrow">Catálogo</span>
+        <h2>Sistemas</h2>
+        <p class="lead">Cada app que consome esta identidade. Toda tela vira uma permissão que você libera por usuário.</p>
+        <div class="cards" id="sistemasCards"></div>
+      </section>
+
+      <section id="secPapeis" class="page hidden">
+        <span class="eyebrow">Cargos-molde</span>
+        <h2>Papéis</h2>
+        <p class="lead">Um papel é um pacote de acesso pronto. Atribua um papel e a pessoa herda tudo que ele concede.</p>
+        <div class="cards" id="papeisCards"></div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer">
+  <div class="dw-top">
+    <div class="dw-head">
+      <div class="avatar" id="dwAvatar">–</div>
+      <div class="dw-id"><h3 id="dwNome">–</h3><div class="meta" id="dwMeta">–</div></div>
+      <button class="x" id="dwClose">✕</button>
+    </div>
+    <div class="dw-actions" id="dwActions"></div>
+    <div class="dw-tabs" id="dwTabs"></div>
+  </div>
+  <div class="dw-body" id="dwBody"></div>
+</aside>
+
+<div id="toast"></div>
+
+<script>
+const API = location.origin + "/api";
+let TOKEN = localStorage.getItem("iam_token") || null;
+let USER = JSON.parse(localStorage.getItem("iam_user") || "null");
+let CAT = { papeis: [], sistemas: [], permissoes: [] };
+let ESCOPO_OPC = {}; // { COORDENADOR:[...], SUPERVISOR:[...], LIDER:[...], PROJETO:[...], EQUIPE:[...] } — do organograma
+let dId = null, dDet = null, selSis = "PCP", dTab = "acessos";
+let offset = 0, limit = 25, total = 0;
+
+const el = (id) => document.getElementById(id);
+const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+const iniciais = (n) => (n || "?").split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]).join("").toUpperCase();
+
+async function api(path, opts = {}) {
+  const headers = Object.assign({ "Content-Type": "application/json" }, opts.headers || {});
+  if (TOKEN) headers.Authorization = "Bearer " + TOKEN;
+  const r = await fetch(API + path, Object.assign({}, opts, { headers }));
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(data.erro || ("Erro " + r.status));
+  return data;
+}
+function toast(html, ms = 6000) { const t = el("toast"); t.innerHTML = html; t.classList.add("show"); clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove("show"), ms); }
+function debounce(f, ms) { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => f(...a), ms); }; }
+
+el("loginForm").addEventListener("submit", async (e) => {
+  e.preventDefault(); el("lErr").textContent = "";
+  try {
+    const d = await api("/auth/login", { method: "POST", body: JSON.stringify({ login: el("lUser").value, senha: el("lPass").value }) });
+    if (!d.usuario.admin) { el("lErr").textContent = "Este login não é administrador."; return; }
+    TOKEN = d.token; USER = d.usuario;
+    localStorage.setItem("iam_token", TOKEN); localStorage.setItem("iam_user", JSON.stringify(USER));
+    entrar();
+  } catch (err) { el("lErr").textContent = err.message; }
+});
+el("btnSair").onclick = () => { localStorage.clear(); location.reload(); };
+
+async function entrar() {
+  el("loginView").classList.add("hidden"); el("appView").classList.remove("hidden");
+  el("whoName").textContent = USER.nome + " · " + USER.login;
+  try { CAT = await api("/admin/catalogo"); } catch {}
+  try { ESCOPO_OPC = await api("/admin/escopo-opcoes"); } catch {}
+  renderSistemas(); renderPapeis(); carregar();
+}
+
+document.querySelectorAll(".rail a").forEach((a) => a.onclick = () => {
+  document.querySelectorAll(".rail a").forEach((x) => x.classList.remove("active"));
+  a.classList.add("active");
+  const s = a.dataset.sec;
+  el("secUsuarios").classList.toggle("hidden", s !== "usuarios");
+  el("secSistemas").classList.toggle("hidden", s !== "sistemas");
+  el("secPapeis").classList.toggle("hidden", s !== "papeis");
+});
+
+el("busca").addEventListener("input", debounce(() => { offset = 0; carregar(); }, 280));
+el("estado").onchange = () => { offset = 0; carregar(); };
+el("prev").onclick = () => { if (offset > 0) { offset -= limit; carregar(); } };
+el("next").onclick = () => { if (offset + limit < total) { offset += limit; carregar(); } };
+
+const estadoChip = (u) => u.ESTADO === "ATIVO" ? '<span class="chip ok">Ativo</span>' : '<span class="chip warn">Pendente</span>';
+const senhaChip = (u) => !u.TEM_SENHA ? '<span class="chip mut">Sem senha</span>' : (u.SENHA_PROVISORIA ? '<span class="chip warn">Provisória</span>' : '<span class="chip ok">Definida</span>');
+
+async function carregar() {
+  const q = new URLSearchParams({ busca: el("busca").value, estado: el("estado").value, limit, offset });
+  let d;
+  try { d = await api("/admin/usuarios?" + q); }
+  catch (e) { if (/inválido|expirado|restrito/i.test(e.message)) { localStorage.clear(); location.reload(); } return; }
+  total = d.total;
+  const tb = el("tbody"); tb.innerHTML = "";
+  for (const u of d.usuarios) {
+    const tr = document.createElement("tr");
+    if (u.ID === dId) tr.classList.add("sel");
+    tr.innerHTML = `
+      <td><div class="nm">${esc(u.NOME)}</div></td>
+      <td><span class="mono" style="color:var(--ink-2)">${esc(u.LOGIN)}</span></td>
+      <td class="sub2">${esc(u.CPF) || "—"}${u.MATRICULA ? " · " + esc(u.MATRICULA) : ""}</td>
+      <td>${estadoChip(u)}</td><td>${senhaChip(u)}</td>
+      <td>${u.ATIVO ? '<span class="node on"></span>' : '<span class="chip no">Não</span>'}</td>`;
+    tr.onclick = () => abrir(u.ID);
+    tb.appendChild(tr);
+  }
+  el("count").textContent = total + " registro(s)";
+  el("pag").textContent = total ? `${offset + 1}–${Math.min(offset + limit, total)} de ${total}` : "0";
+  el("prev").disabled = offset === 0; el("next").disabled = offset + limit >= total;
+}
+
+/* ── DRAWER ── */
+el("dwClose").onclick = fechar; el("scrim").onclick = fechar;
+function fechar() { el("drawer").classList.remove("show"); el("scrim").classList.remove("show"); dId = null; carregar(); }
+async function abrir(id) { dId = id; el("scrim").classList.add("show"); el("drawer").classList.add("show"); el("dwBody").innerHTML = '<div class="empty">Carregando…</div>'; await recarregarDetalhe(); }
+async function recarregarDetalhe() {
+  try { dDet = await api("/admin/usuarios/" + dId + "/detalhe"); } catch (e) { el("dwBody").innerHTML = '<div class="empty">' + esc(e.message) + '</div>'; return; }
+  renderTopo(); renderTab();
+}
+async function mut(method, path, body) { try { await api(path, { method, body: body ? JSON.stringify(body) : undefined }); await recarregarDetalhe(); } catch (e) { toast("Erro: " + esc(e.message)); } }
+
+function renderTopo() {
+  const u = dDet.usuario;
+  el("dwAvatar").textContent = iniciais(u.NOME);
+  el("dwNome").textContent = u.NOME;
+  el("dwNome").title = u.NOME;
+  el("dwMeta").innerHTML = `<span class="mono">${esc(u.LOGIN)}</span> · ${esc(u.CPF) || "sem CPF"} · ${estadoChip(u)}`;
+  el("dwActions").innerHTML = `
+    <span class="status">Senha: ${senhaChip(u)}</span>
+    <button class="btn pri sm" id="aSenha">Gerar senha</button>
+    <button class="btn sm ${u.ATIVO ? "danger" : ""}" id="aEstado">${u.ATIVO ? "Desativar" : "Ativar"}</button>`;
+  el("aSenha").onclick = gerarSenha;
+  el("aEstado").onclick = () => mut("POST", `/admin/usuarios/${dId}/estado`, { ativo: !dDet.usuario.ATIVO });
+
+  const tabs = [["acessos", "Acessos"], ["perfil", "Perfil"], ["treino", "Treinamento"]];
+  el("dwTabs").innerHTML = tabs.map(([k, l]) => `<button data-tab="${k}" class="${dTab === k ? "on" : ""}">${l}</button>`).join("");
+  el("dwTabs").querySelectorAll("[data-tab]").forEach((b) => b.onclick = () => { dTab = b.dataset.tab; renderTopo(); renderTab(); });
+}
+
+function renderTab() {
+  if (dTab === "perfil") return renderPerfil();
+  if (dTab === "treino") return renderTreino();
+  return renderAcessos();
+}
+
+function renderPerfil() {
+  const u = dDet.usuario;
+  el("dwBody").innerHTML = `
+    <div class="block"><div class="bh"><h4>Contato</h4></div><div class="bc">
+      <dl class="dl">
+        <dt>Email</dt><dd>${esc(u.EMAIL) || "—"}</dd>
+        <dt>Telefone</dt><dd>${esc(u.TELEFONE_EMPRESARIAL) || "—"}</dd>
+        <dt>Matrícula</dt><dd>${esc(u.MATRICULA) || "—"}</dd>
+      </dl>
+    </div></div>
+
+    <div class="block"><div class="bh"><h4>Papéis</h4><p>O cargo-molde. A pessoa herda tudo que o papel concede.</p></div><div class="bc">
+      <div class="row" id="dPapeis"></div>
+      <div class="addrow">
+        <select class="inp" id="dPapelSel">${CAT.papeis.map((p) => `<option value="${p.ID}">${esc(p.NOME)} · escopo ${esc(p.ESCOPO_TIPO_PADRAO)}</option>`).join("")}</select>
+        <button class="btn sm" id="dPapelAdd">Adicionar</button>
+      </div>
+    </div></div>
+
+    <div class="block"><div class="bh" style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px">
+      <div><h4>Escopo — o que a pessoa enxerga</h4><p>GLOBAL vê tudo. Coordenador/Supervisor pelo nome (puxam os projetos deles). Equipe/Projeto pelo código. Baseado no organograma.</p></div>
+      <button class="btn sm ghost" id="dTransfBtn" style="white-space:nowrap">⇄ Transferir</button>
+    </div><div class="bc">
+      <div id="dTransfPanel" style="display:none;border:1px solid var(--line);border-radius:9px;padding:10px;margin-bottom:10px;background:var(--bg)">
+        <div class="hint" style="margin-bottom:6px">Copiar/mover o escopo desta pessoa para outra (ex.: férias, saída, cobrir alguém).</div>
+        <div class="addrow" style="flex-wrap:wrap">
+          <input class="inp" id="tfBusca" placeholder="quem recebe? (nome ou login)" style="min-width:200px" autocomplete="off" />
+          <select class="inp" id="tfModo" style="max-width:150px"><option value="copiar">Copiar (mantém aqui)</option><option value="mover">Mover (tira daqui)</option></select>
+          <button class="btn sm" id="tfDo" disabled>Transferir tudo</button>
+        </div>
+        <div id="tfResultados" style="margin-top:6px"></div>
+      </div>
+      <div id="dEscopos"></div>
+      <div class="addrow">
+        <select class="inp" id="dEscTipo" style="max-width:150px"><option>GLOBAL</option><option>COORDENADOR</option><option>SUPERVISOR</option><option>EQUIPE</option><option>PROJETO</option></select>
+        <input class="inp" id="dEscValor" list="escOpc" placeholder="escolha do organograma…" />
+        <datalist id="escOpc"></datalist>
+        <button class="btn sm" id="dEscAdd">Adicionar</button>
+      </div>
+    </div></div>`;
+
+  el("dPapeis").innerHTML = (dDet.papeis || []).length
+    ? dDet.papeis.map((p) => `<span class="tag">${esc(p.NOME)}<button data-delp="${p.ID}">✕</button></span>`).join("")
+    : '<span class="hint">nenhum papel</span>';
+  renderEscopos();
+  // datalist do valor conforme o tipo (opções do organograma)
+  const atualizaOpc = () => {
+    const t = el("dEscTipo").value;
+    el("escOpc").innerHTML = (ESCOPO_OPC[t] || []).map((v) => `<option value="${esc(v)}">`).join("");
+    el("dEscValor").disabled = t === "GLOBAL";
+    el("dEscValor").placeholder = t === "GLOBAL" ? "(não precisa de âncora)"
+      : t === "PROJETO" ? "código do projeto…" : t === "EQUIPE" ? "código da equipe…" : "escolha do organograma…";
+    if (t === "GLOBAL") el("dEscValor").value = "";
+  };
+  el("dEscTipo").onchange = atualizaOpc; atualizaOpc();
+
+  el("dPapelAdd").onclick = () => mut("POST", `/admin/usuarios/${dId}/papeis`, { papel_id: Number(el("dPapelSel").value) });
+  el("dEscAdd").onclick = () => mut("POST", `/admin/usuarios/${dId}/escopo`, { tipo: el("dEscTipo").value, valor: el("dEscValor").value });
+  el("dPapeis").querySelectorAll("[data-delp]").forEach((b) => b.onclick = () => mut("DELETE", `/admin/usuarios/${dId}/papeis/${b.dataset.delp}`));
+  wireTransferencia();
+}
+
+// Escopo editável: âncoras (GLOBAL/coord/sup) em caixas; projetos e equipes como chips com ✕.
+function renderEscopos() {
+  const escs = dDet.escopos || [];
+  if (!escs.length) { el("dEscopos").innerHTML = '<span class="hint">sem escopo — não enxerga nada</span>'; return; }
+  const ancoras = escs.filter((e) => ["GLOBAL", "COORDENADOR", "SUPERVISOR"].includes(e.TIPO));
+  const projetos = escs.filter((e) => e.TIPO === "PROJETO");
+  const equipes = escs.filter((e) => e.TIPO === "EQUIPE");
+
+  const caixaAncora = (e) => {
+    const derivado = e.TIPO === "COORDENADOR" || e.TIPO === "SUPERVISOR";
+    return `<div class="escrow" data-tipo="${esc(e.TIPO)}" data-valor="${esc(e.VALOR || "")}"
+         style="border:1px solid var(--line);border-radius:9px;padding:9px 11px;margin-bottom:7px;background:var(--card)">
+      <div class="row" style="justify-content:space-between">
+        <span style="font-size:13px"><b>${esc(e.TIPO)}</b>${e.VALOR ? " · " + esc(e.VALOR) : ""}</span>
+        <span class="row" style="gap:6px">
+          ${derivado ? `<button class="btn sm ghost" data-expandir="${e.ID}" title="Vira projetos avulsos para você tirar/pôr um a um">Destravar p/ editar</button>` : ""}
+          <button class="btn sm danger" data-dele="${e.ID}">Remover</button>
+        </span>
+      </div>
+      <div class="hint cobertura" style="margin-top:5px">carregando cobertura…</div>
+    </div>`;
+  };
+  const linhaChips = (titulo, arr, vazio) => `
+    <div style="margin:4px 0 9px">
+      <div class="hint" style="margin-bottom:4px">${titulo}</div>
+      <div class="row" style="gap:6px">${arr.length
+        ? arr.map((e) => `<span class="tag">${esc(e.VALOR)}<button data-dele="${e.ID}" title="tirar">✕</button></span>`).join("")
+        : `<span class="hint" style="opacity:.7">${vazio}</span>`}</div>
+    </div>`;
+
+  el("dEscopos").innerHTML =
+    ancoras.map(caixaAncora).join("") +
+    linhaChips("Projetos avulsos", projetos, "nenhum — adicione abaixo (tipo PROJETO)") +
+    linhaChips("Equipes", equipes, "nenhuma — adicione abaixo (tipo EQUIPE)");
+
+  el("dEscopos").querySelectorAll("[data-dele]").forEach((b) => b.onclick = () => mut("DELETE", `/admin/usuarios/${dId}/escopo/${b.dataset.dele}`));
+  el("dEscopos").querySelectorAll("[data-expandir]").forEach((b) => b.onclick = () => mut("POST", `/admin/usuarios/${dId}/escopo/${b.dataset.expandir}/expandir`));
+  el("dEscopos").querySelectorAll(".escrow").forEach(async (row) => {
+    const cob = row.querySelector(".cobertura");
+    try {
+      const d = await api(`/admin/escopo-cobertura?tipo=${encodeURIComponent(row.dataset.tipo)}&valor=${encodeURIComponent(row.dataset.valor)}`);
+      if (d.tudo) cob.textContent = "→ vê todos os projetos";
+      else if (d.equipes && d.equipes.length) cob.textContent = "→ equipe " + d.equipes.join(", ");
+      else if (d.projetos && d.projetos.length) cob.innerHTML = `→ cobre ${d.projetos.length} projeto(s): ` + d.projetos.map((p) => `<span class="perm">${esc(p)}</span>`).join("");
+      else cob.textContent = "→ nenhum projeto encontrado no organograma";
+    } catch { cob.textContent = ""; }
+  });
+}
+
+// Transferir escopo desta pessoa para outra (copiar ou mover).
+function wireTransferencia() {
+  let destino = null;
+  const panel = el("dTransfPanel");
+  el("dTransfBtn").onclick = () => { panel.style.display = panel.style.display === "none" ? "block" : "none"; };
+  const doBtn = el("tfDo"), busca = el("tfBusca"), res = el("tfResultados");
+  let t;
+  busca.oninput = () => {
+    destino = null; doBtn.disabled = true;
+    clearTimeout(t);
+    const q = busca.value.trim();
+    if (q.length < 2) { res.innerHTML = ""; return; }
+    t = setTimeout(async () => {
+      try {
+        const d = await api("/admin/usuarios?" + new URLSearchParams({ busca: q, limit: 6, offset: 0 }));
+        res.innerHTML = (d.usuarios || []).filter((u) => u.ID !== dId).map((u) =>
+          `<div class="tfhit row" data-uid="${u.ID}" data-nome="${esc(u.NOME)}" style="cursor:pointer;padding:5px 8px;border-radius:6px;justify-content:space-between">
+             <span>${esc(u.NOME)}</span><span class="mono hint">${esc(u.LOGIN)}</span></div>`).join("") || '<div class="hint">nada encontrado</div>';
+        res.querySelectorAll(".tfhit").forEach((h) => h.onclick = () => {
+          destino = Number(h.dataset.uid); busca.value = h.dataset.nome; res.innerHTML = ""; doBtn.disabled = false;
+        });
+      } catch { res.innerHTML = ""; }
+    }, 250);
+  };
+  doBtn.onclick = async () => {
+    if (!destino) return;
+    const modo = el("tfModo").value;
+    try {
+      const r = await api(`/admin/usuarios/${dId}/escopo/transferir`, { method: "POST", body: JSON.stringify({ destino_id: destino, modo }) });
+      toast(`Escopo ${modo === "mover" ? "movido" : "copiado"} p/ ${r.destino} (${r.qtd} item(ns)).`);
+      panel.style.display = "none"; busca.value = ""; destino = null; doBtn.disabled = true;
+      await recarregarDetalhe();
+    } catch (e) { toast("Erro: " + esc(e.message)); }
+  };
+}
+
+const GRUPO_ORDEM = ["Home", "Gestão", "Produção", "Prêmios", "Cadastros", "Insumos", "Campo", "Testes", "Admin"];
+
+// ação em lote (liberar/negar/herdar várias telas de uma vez)
+async function lote(tipo, codigos) {
+  try { await api(`/admin/usuarios/${dId}/excecoes-lote`, { method: "POST", body: JSON.stringify({ tipo, codigos }) }); await recarregarDetalhe(); }
+  catch (e) { toast("Erro: " + esc(e.message)); }
+}
+
+function renderAcessos() {
+  el("dwBody").innerHTML = `
+    <p class="hint" style="margin:0 0 12px">Escolha o sistema e libere por tela ou por grupo inteiro.
+      <b>Herdado</b> segue o papel · <b>Liberar</b> concede · <b>Negar</b> tira, mesmo que o papel dê.</p>
+    <div class="sysbar" id="sysbar"></div>
+    <div class="row" id="sysBulk" style="margin:-2px 0 12px;gap:6px"></div>
+    <div id="telasWrap"></div>`;
+  renderSysbar();
+}
+
+function renderSysbar() {
+  const efetivas = new Set(dDet.efetivas || []);
+  const permsPorSis = {}; (CAT.permissoes || []).forEach((p) => (permsPorSis[p.SISTEMA_CODIGO] ||= []).push(p));
+  if (!permsPorSis[selSis]) selSis = (CAT.sistemas.find((s) => permsPorSis[s.CODIGO]) || {}).CODIGO || "";
+  el("sysbar").innerHTML = CAT.sistemas.filter((s) => permsPorSis[s.CODIGO]).map((s) => {
+    const perms = permsPorSis[s.CODIGO]; const on = perms.filter((p) => efetivas.has(p.CODIGO)).length;
+    return `<button class="systab ${s.CODIGO === selSis ? "on" : ""}" data-sis="${esc(s.CODIGO)}">${esc(s.NOME)}<span class="cnt">${on}/${perms.length}</span></button>`;
+  }).join("");
+  el("sysbar").querySelectorAll("[data-sis]").forEach((b) => b.onclick = () => { selSis = b.dataset.sis; renderSysbar(); });
+
+  const perms = permsPorSis[selSis] || [];
+  const todosCods = perms.map((p) => p.CODIGO);
+  el("sysBulk").innerHTML = perms.length ? `
+    <span class="hint" style="margin-right:auto">Menu inteiro deste sistema:</span>
+    <button class="btn sm" data-l="CONCEDER">Liberar tudo</button>
+    <button class="btn sm" data-l="HERDAR">Herdar tudo</button>
+    <button class="btn sm" data-l="NEGAR">Negar tudo</button>` : "";
+  el("sysBulk").querySelectorAll("[data-l]").forEach((b) => b.onclick = () => lote(b.dataset.l, todosCods));
+
+  renderTelas(perms, efetivas);
+}
+
+function renderTelas(perms, efetivas) {
+  const excPorCod = {}; (dDet.excecoes || []).forEach((x) => excPorCod[x.PERMISSAO_CODIGO] = x.TIPO);
+  if (!perms.length) { el("telasWrap").innerHTML = '<div class="hint">Este sistema não tem telas cadastradas.</div>'; return; }
+
+  const porGrupo = {}; perms.forEach((p) => { const g = p.GRUPO || "Telas"; (porGrupo[g] = porGrupo[g] || []).push(p); });
+  const grupos = Object.keys(porGrupo).sort((a, b) => {
+    const ia = GRUPO_ORDEM.indexOf(a), ib = GRUPO_ORDEM.indexOf(b);
+    return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib) || a.localeCompare(b);
+  });
+
+  let html = "";
+  for (const g of grupos) {
+    const ps = porGrupo[g]; const on = ps.filter((p) => efetivas.has(p.CODIGO)).length;
+    const linhas = ps.map((p) => {
+      const est = excPorCod[p.CODIGO] || "HERD"; const efe = efetivas.has(p.CODIGO);
+      return `<div class="telarow">
+        <span class="node ${efe ? "on" : "off"}" title="${efe ? "com acesso" : "sem acesso"}"></span>
+        <div class="lbl"><div class="t">${esc(p.DESCRICAO || p.CODIGO)}</div><small>${esc(p.CODIGO)}</small></div>
+        <div class="seg" data-cod="${esc(p.CODIGO)}">
+          <button data-t="HERD" class="${est === "HERD" ? "on herd" : ""}">Herdado</button>
+          <button data-t="CONCEDER" class="${est === "CONCEDER" ? "on lib" : ""}">Liberar</button>
+          <button data-t="NEGAR" class="${est === "NEGAR" ? "on neg" : ""}">Negar</button>
+        </div></div>`;
+    }).join("");
+    html += `<details class="telas" data-grupo="${esc(g)}" open style="margin-bottom:10px">
+      <summary style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--card-2);border-bottom:1px solid var(--line);cursor:pointer;list-style:none">
+        <b style="font-size:13px">${esc(g)}</b>
+        <span class="chip ${on === ps.length ? "ok" : on ? "warn" : "mut"}">${on}/${ps.length}</span>
+        <span class="row" style="margin-left:auto;gap:5px">
+          <button class="btn sm" data-g="CONCEDER">Liberar</button>
+          <button class="btn sm" data-g="HERDAR">Herdar</button>
+          <button class="btn sm" data-g="NEGAR">Negar</button>
+        </span>
+      </summary>${linhas}</details>`;
+  }
+  el("telasWrap").innerHTML = html;
+
+  // ações por tela
+  el("telasWrap").querySelectorAll(".seg").forEach((seg) => {
+    const cod = seg.dataset.cod;
+    seg.querySelectorAll("button").forEach((btn) => btn.onclick = () => {
+      const t = btn.dataset.t;
+      if (t === "HERD") mut("DELETE", `/admin/usuarios/${dId}/excecao/${encodeURIComponent(cod)}`);
+      else mut("POST", `/admin/usuarios/${dId}/excecao`, { permissao_codigo: cod, tipo: t });
+    });
+  });
+  // ações por grupo (não deixa o clique fechar o <details>)
+  el("telasWrap").querySelectorAll("details[data-grupo]").forEach((det) => {
+    const cods = porGrupo[det.dataset.grupo].map((p) => p.CODIGO);
+    det.querySelectorAll("[data-g]").forEach((b) => b.onclick = (ev) => { ev.preventDefault(); ev.stopPropagation(); lote(b.dataset.g, cods); });
+  });
+}
+
+function renderTreino() {
+  const trMap = {}; (dDet.treinamentos || []).forEach((t) => trMap[t.SISTEMA_CODIGO] = t);
+  const linhas = CAT.sistemas.map((s) => {
+    const t = trMap[s.CODIGO]; const on = t && t.TREINADO;
+    return `<div class="treinorow"><div>${esc(s.NOME)} ${s.EXIGE_TREINAMENTO ? '<span class="chip warn">exige</span>' : ""}
+      ${on && t.DATA_TREINAMENTO ? `<div class="sub2">desde ${esc(String(t.DATA_TREINAMENTO).slice(0,10))}</div>` : ""}</div>
+      <button class="switch ${on ? "on" : ""}" data-treino="${esc(s.CODIGO)}" data-on="${on ? 1 : 0}"></button></div>`;
+  }).join("");
+  el("dwBody").innerHTML = `
+    <div class="block"><div class="bh"><h4>Treinamento por sistema</h4><p>Marca quem já foi treinado, com a data.</p></div>${linhas}</div>
+    <div class="block"><div class="bh"><h4>Permissões efetivas</h4><p>O resultado final: papel + liberações − negações.</p></div><div class="bc">
+      ${(dDet.efetivas || []).length ? dDet.efetivas.map((c) => `<span class="perm">${esc(c)}</span>`).join("") : '<span class="hint">nenhuma</span>'}
+    </div></div>`;
+  el("dwBody").querySelectorAll("[data-treino]").forEach((b) => b.onclick = () => mut("POST", `/admin/usuarios/${dId}/treinamento`, { sistema_codigo: b.dataset.treino, treinado: b.dataset.on !== "1" }));
+}
+
+async function gerarSenha() {
+  if (!confirm("Gerar uma nova senha provisória para " + dDet.usuario.NOME + "?")) return;
+  try {
+    const d = await api("/admin/usuarios/" + dId + "/senha-provisoria", { method: "POST" });
+    toast(`<div class="eyebrow" style="margin-bottom:4px">Senha provisória</div><b>${esc(d.nome)}</b><br><span class="senha">${esc(d.senha_provisoria)}</span><br><span class="hint">Anote e entregue agora — não aparece de novo. Troca no 1º acesso.</span>`, 30000);
+    await recarregarDetalhe(); carregar();
+  } catch (e) { toast("Erro: " + esc(e.message)); }
+}
+
+function renderSistemas() {
+  const permsPorSis = {}; (CAT.permissoes || []).forEach((p) => (permsPorSis[p.SISTEMA_CODIGO] ||= []).push(p));
+  el("sistemasCards").innerHTML = (CAT.sistemas || []).map((s) => `
+    <div class="scard"><h3>${esc(s.NOME)} ${s.EXIGE_TREINAMENTO ? '<span class="chip warn">treinamento</span>' : ""}</h3>
+      <div class="code">${esc(s.CODIGO)} · ${(permsPorSis[s.CODIGO] || []).length} tela(s)</div>
+      ${(permsPorSis[s.CODIGO] || []).map((p) => `<div class="telaline"><span>${esc(p.DESCRICAO || p.CODIGO)}</span><span class="sub2">${esc(p.CODIGO)}</span></div>`).join("") || '<div class="hint" style="margin-top:12px">sem permissões</div>'}
+    </div>`).join("") || '<div class="empty">Nenhum sistema.</div>';
+}
+function renderPapeis() {
+  el("papeisCards").innerHTML = (CAT.papeis || []).map((p) => `
+    <div class="scard"><h3>${esc(p.NOME)}</h3><div class="code">escopo padrão · ${esc(p.ESCOPO_TIPO_PADRAO)}</div>
+      <p class="hint" style="margin-top:12px">Atribua na aba Usuários para conceder o pacote de acesso.</p></div>`).join("") || '<div class="empty">Nenhum papel.</div>';
+}
+
+if (TOKEN && USER && USER.admin) entrar(); else { localStorage.clear(); }
+</script>
+</body>
+</html>

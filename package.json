@@ -1,0 +1,23 @@
+{
+  "name": "iam-larsil",
+  "version": "0.1.0",
+  "private": true,
+  "description": "IAM central da Larsil — identidade unica, Auth API e console de acessos. Sistemas apenas consomem.",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node src/server.cjs",
+    "dev": "node --watch src/server.cjs",
+    "import:colaboradores": "node scripts/import-colaboradores.cjs",
+    "import:colaboradores:dry": "node scripts/import-colaboradores.cjs --dry-run",
+    "sql": "node scripts/run-sql.cjs",
+    "set-senha": "node scripts/set-senha.cjs",
+    "test:login": "node scripts/test-login.cjs"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2",
+    "mssql": "^11.0.1"
+  }
+}
