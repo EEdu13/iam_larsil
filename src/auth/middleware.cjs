@@ -23,11 +23,13 @@ function requireAuth(req, res, next) {
   }
 }
 
-/** Exige que o usuário do token seja admin (temporário, via ADMIN_LOGINS). */
+/** Exige que o usuário do token seja admin: está em ADMIN_LOGINS (legado) OU tem o papel TI. */
 function requireAdmin(req, res, next) {
   requireAuth(req, res, () => {
     const login = String(req.usuario?.login || "").toLowerCase();
-    if (!ADMIN_LOGINS.has(login)) {
+    const papeis = req.usuario?.papeis || [];
+    const ehAdmin = ADMIN_LOGINS.has(login) || papeis.includes("TI");
+    if (!ehAdmin) {
       return res.status(403).json({ erro: "Acesso restrito à administração" });
     }
     next();

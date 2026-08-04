@@ -24,7 +24,8 @@ async function payloadDe(pool, u) {
     login: u.LOGIN,
     nome: u.NOME,
     cpf: u.CPF,
-    admin: ADMIN_LOGINS.has(String(u.LOGIN).toLowerCase()),
+    // Admin do console = está na lista ADMIN_LOGINS (legado) OU tem o papel TI.
+    admin: ADMIN_LOGINS.has(String(u.LOGIN).toLowerCase()) || (acesso.papeis || []).includes("TI"),
     papeis: acesso.papeis,
     permissoes: acesso.permissoes,
     escopos: acesso.escopos,
