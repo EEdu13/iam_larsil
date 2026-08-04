@@ -118,7 +118,9 @@
   /* topo fixo do drawer */
   .dw-top{background:var(--card);border-bottom:1px solid var(--line);flex-shrink:0}
   .dw-head{padding:18px 20px 14px;display:flex;gap:14px;align-items:center}
-  .avatar{width:48px;height:48px;border-radius:50%;flex-shrink:0;display:grid;place-items:center;font-weight:700;font-size:17px;color:#fff;background:linear-gradient(135deg,#15916a,#0c5a40)}
+  .avatar{position:relative;width:48px;height:48px;border-radius:50%;flex-shrink:0;display:grid;place-items:center;font-weight:700;font-size:17px;color:#fff;background:linear-gradient(135deg,#15916a,#0c5a40);overflow:hidden}
+  .avm{position:relative;width:30px;height:30px;border-radius:50%;flex:none;display:inline-grid;place-items:center;font-weight:700;font-size:12px;color:#fff;background:linear-gradient(135deg,#15916a,#0c5a40);overflow:hidden;vertical-align:middle}
+  .avph{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:50%}
   .dw-id{min-width:0;flex:1}
   .dw-id h3{margin:0;font-size:18px;font-weight:700;letter-spacing:-.02em;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .dw-id .meta{color:var(--ink-2);font-size:12.5px;margin-top:3px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
@@ -245,6 +247,7 @@
             <option value="ATIVO">Ativos</option>
           </select>
           <span class="count" id="count"></span>
+          <button class="btn pri" id="btnNovo" style="margin-left:auto">+ Novo usuário</button>
         </div>
         <div class="grid-wrap">
           <table>
@@ -258,6 +261,24 @@
           <span id="pag"></span>
         </div>
       </section>
+
+      <!-- Modal: novo usuário manual (diretores fora de COLABORADORES) -->
+      <div id="novoScrim" style="display:none;position:fixed;inset:0;background:rgba(15,30,25,.45);z-index:50;align-items:center;justify-content:center">
+        <div style="background:var(--card,#fff);border-radius:14px;max-width:460px;width:92%;padding:22px;box-shadow:0 20px 60px rgba(0,0,0,.25)">
+          <h3 style="margin:0 0 4px;font-size:17px">Novo usuário</h3>
+          <p class="hint" style="margin:0 0 14px">Para quem não está em colaboradores (ex.: diretoria). Cria só a identidade — a senha você gera depois.</p>
+          <div class="field"><label>Nome completo *</label><input class="inp" id="nvNome" placeholder="Ex.: PAULO ROBERTO MACHADO" /></div>
+          <div class="field"><label>CPF</label><input class="inp" id="nvCpf" placeholder="só números (opcional)" /></div>
+          <div class="field"><label>Matrícula</label><input class="inp" id="nvMat" placeholder="opcional" /></div>
+          <div class="field"><label>E-mail empresarial</label><input class="inp" id="nvEmail" placeholder="opcional" /></div>
+          <div class="field"><label>Telefone</label><input class="inp" id="nvTel" placeholder="opcional" /></div>
+          <div class="err" id="nvErr" style="margin:6px 0"></div>
+          <div class="row" style="justify-content:flex-end;gap:8px;margin-top:8px">
+            <button class="btn" id="nvCancel">Cancelar</button>
+            <button class="btn pri" id="nvSalvar">Criar usuário</button>
+          </div>
+        </div>
+      </div>
 
       <section id="secSistemas" class="page hidden">
         <span class="eyebrow">Catálogo</span>
@@ -298,12 +319,17 @@ let TOKEN = localStorage.getItem("iam_token") || null;
 let USER = JSON.parse(localStorage.getItem("iam_user") || "null");
 let CAT = { papeis: [], sistemas: [], permissoes: [] };
 let ESCOPO_OPC = {}; // { COORDENADOR:[...], SUPERVISOR:[...], LIDER:[...], PROJETO:[...], EQUIPE:[...] } — do organograma
+let FOTO_BASE = ""; // URL do PCP que resolve a foto por nome (upload → Unico People)
 let dId = null, dDet = null, selSis = "PCP", dTab = "acessos";
 let offset = 0, limit = 25, total = 0;
 
 const el = (id) => document.getElementById(id);
 const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
 const iniciais = (n) => (n || "?").split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]).join("").toUpperCase();
+// <img> da foto por cima das iniciais; se não houver foto (404) o onerror remove e ficam as iniciais.
+const fotoOverlay = (nome) => FOTO_BASE ? `<img class="avph" alt="" loading="lazy" src="${FOTO_BASE}/api/foto/${encodeURIComponent(nome)}" onerror="this.remove()">` : "";
+// avatar pequeno pra lista (iniciais + foto sobreposta)
+const avatarMini = (nome) => `<span class="avm">${esc(iniciais(nome))}${fotoOverlay(nome)}</span>`;
 
 async function api(path, opts = {}) {
   const headers = Object.assign({ "Content-Type": "application/json" }, opts.headers || {});
@@ -333,6 +359,7 @@ async function entrar() {
   el("whoName").textContent = USER.nome + " · " + USER.login;
   try { CAT = await api("/admin/catalogo"); } catch {}
   try { ESCOPO_OPC = await api("/admin/escopo-opcoes"); } catch {}
+  try { FOTO_BASE = (await api("/admin/ui-config")).fotoBase || ""; } catch {}
   renderSistemas(); renderPapeis(); carregar();
 }
 
@@ -350,6 +377,28 @@ el("estado").onchange = () => { offset = 0; carregar(); };
 el("prev").onclick = () => { if (offset > 0) { offset -= limit; carregar(); } };
 el("next").onclick = () => { if (offset + limit < total) { offset += limit; carregar(); } };
 
+// ── Novo usuário manual ──
+const novoScrim = el("novoScrim");
+function abrirNovo() { ["nvNome","nvCpf","nvMat","nvEmail","nvTel"].forEach((i) => el(i).value = ""); el("nvErr").textContent = ""; novoScrim.style.display = "flex"; el("nvNome").focus(); }
+function fecharNovo() { novoScrim.style.display = "none"; }
+el("btnNovo").onclick = abrirNovo;
+el("nvCancel").onclick = fecharNovo;
+novoScrim.addEventListener("click", (e) => { if (e.target === novoScrim) fecharNovo(); });
+el("nvSalvar").onclick = async () => {
+  const nome = el("nvNome").value.trim();
+  if (nome.length < 3) { el("nvErr").textContent = "Informe o nome completo."; return; }
+  el("nvSalvar").disabled = true; el("nvErr").textContent = "";
+  try {
+    const r = await api("/admin/usuarios", { method: "POST", body: JSON.stringify({
+      nome, cpf: el("nvCpf").value, matricula: el("nvMat").value, email: el("nvEmail").value, telefone: el("nvTel").value,
+    }) });
+    fecharNovo();
+    toast(`Usuário criado: <b>${esc(nome)}</b> · login <b>${esc(r.login)}</b>. Agora gere a senha no perfil dele.`);
+    offset = 0; el("busca").value = r.login; await carregar();
+  } catch (e) { el("nvErr").textContent = e.message || "Falha ao criar."; }
+  finally { el("nvSalvar").disabled = false; }
+};
+
 const estadoChip = (u) => u.ESTADO === "ATIVO" ? '<span class="chip ok">Ativo</span>' : '<span class="chip warn">Pendente</span>';
 const senhaChip = (u) => !u.TEM_SENHA ? '<span class="chip mut">Sem senha</span>' : (u.SENHA_PROVISORIA ? '<span class="chip warn">Provisória</span>' : '<span class="chip ok">Definida</span>');
 
@@ -364,7 +413,7 @@ async function carregar() {
     const tr = document.createElement("tr");
     if (u.ID === dId) tr.classList.add("sel");
     tr.innerHTML = `
-      <td><div class="nm">${esc(u.NOME)}</div></td>
+      <td><div class="nm" style="display:flex;align-items:center;gap:10px">${avatarMini(u.NOME)}<span>${esc(u.NOME)}</span></div></td>
       <td><span class="mono" style="color:var(--ink-2)">${esc(u.LOGIN)}</span></td>
       <td class="sub2">${esc(u.CPF) || "—"}${u.MATRICULA ? " · " + esc(u.MATRICULA) : ""}</td>
       <td>${estadoChip(u)}</td><td>${senhaChip(u)}</td>
@@ -389,7 +438,7 @@ async function mut(method, path, body) { try { await api(path, { method, body: b
 
 function renderTopo() {
   const u = dDet.usuario;
-  el("dwAvatar").textContent = iniciais(u.NOME);
+  el("dwAvatar").innerHTML = esc(iniciais(u.NOME)) + fotoOverlay(u.NOME);
   el("dwNome").textContent = u.NOME;
   el("dwNome").title = u.NOME;
   el("dwMeta").innerHTML = `<span class="mono">${esc(u.LOGIN)}</span> · ${esc(u.CPF) || "sem CPF"} · ${estadoChip(u)}`;

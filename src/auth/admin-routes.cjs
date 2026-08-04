@@ -11,10 +11,17 @@ const { sql, getPool, IAM_SCHEMA } = require("../lib/db.cjs");
 const { hashSenha, gerarSenhaProvisoria } = require("../lib/hash.cjs");
 const { auditar } = require("../lib/audit.cjs");
 const { resolverAcesso } = require("../lib/acesso.cjs");
+const { gerarLoginUnico } = require("../lib/login.cjs");
 const { requireAdmin } = require("./middleware.cjs");
 
 const router = express.Router();
 router.use(requireAdmin);
+
+// Config da UI do console. fotoBase = URL do PCP que resolve a foto por nome
+// (GET {fotoBase}/api/foto/{nome} → upload do usuário ou Unico People). Vazio = sem foto (só iniciais).
+router.get("/ui-config", (_req, res) => {
+  res.json({ fotoBase: (process.env.FOTO_BASE_URL || "").replace(/\/$/, "") });
+});
 
 // Catálogo para os seletores da tela (papéis, sistemas, permissões).
 router.get("/catalogo", async (_req, res) => {
@@ -325,6 +332,50 @@ router.get("/usuarios", async (req, res) => {
 
 // POST /api/admin/usuarios/:id/senha-provisoria
 // Gera uma senha aleatória, guarda o hash, marca como provisória e devolve o texto UMA vez.
+// POST /api/admin/usuarios — cria uma identidade MANUAL (ex.: diretores que não estão em
+// dbo.COLABORADORES). Só cria a identidade; senha continua sendo gerada depois pela TI.
+// Login é derivado (nome.sobrenome, único). CPF é opcional, mas se vier tem que ser único.
+router.post("/usuarios", async (req, res) => {
+  try {
+    const nome = String(req.body?.nome || "").trim();
+    if (!nome || nome.length < 3) return res.status(400).json({ erro: "Nome é obrigatório" });
+    const cpf = String(req.body?.cpf || "").replace(/\D/g, "");
+    if (cpf && cpf.length !== 11) return res.status(400).json({ erro: "CPF deve ter 11 dígitos" });
+    const matricula = req.body?.matricula ? String(req.body.matricula).trim() : null;
+    const email = req.body?.email ? String(req.body.email).trim() : null;
+    const telefone = req.body?.telefone ? String(req.body.telefone).replace(/\D/g, "") : null;
+
+    const pool = await getPool();
+    if (cpf) {
+      const dup = await pool.request().input("cpf", sql.Char(11), cpf)
+        .query(`SELECT LOGIN FROM ${IAM_SCHEMA}.IAM_USUARIOS WHERE CPF=@cpf`);
+      if (dup.recordset[0]) return res.status(409).json({ erro: `Já existe usuário com esse CPF (${dup.recordset[0].LOGIN})` });
+    }
+    const usadosR = await pool.request().query(`SELECT LOGIN FROM ${IAM_SCHEMA}.IAM_USUARIOS`);
+    const usados = new Set(usadosR.recordset.map((r) => String(r.LOGIN).toLowerCase()));
+    const g = gerarLoginUnico(nome, usados, `mat${matricula || cpf || Date.now()}`);
+    const login = (g && g.login) ? g.login : g; // devolve {login,...} ou string
+
+    const ins = await pool.request()
+      .input("cpf", sql.Char(11), cpf || null)
+      .input("mat", sql.VarChar(20), matricula)
+      .input("nome", sql.NVarChar(255), nome)
+      .input("login", sql.VarChar(60), login)
+      .input("email", sql.NVarChar(255), email)
+      .input("tel", sql.VarChar(20), telefone)
+      .input("por", sql.NVarChar(120), req.usuario.login)
+      .query(`INSERT INTO ${IAM_SCHEMA}.IAM_USUARIOS (CPF, MATRICULA, NOME, LOGIN, EMAIL, TELEFONE_EMPRESARIAL, ORIGEM, ESTADO, ATIVO, CRIADO_POR)
+              OUTPUT INSERTED.ID
+              VALUES (@cpf, @mat, @nome, @login, @email, @tel, 'MANUAL', 'PENDENTE_CONFIGURACAO', 1, @por)`);
+    const id = ins.recordset[0].ID;
+    await auditar(pool, { usuarioId: id, acao: "USUARIO_CRIADO_MANUAL", detalhe: { nome, login, cpf: cpf || null }, ator: req.usuario.login });
+    res.json({ ok: true, id, login });
+  } catch (e) {
+    console.error("[usuario-criar]", e.message);
+    res.status(500).json({ erro: "Falha ao criar usuário", detalhe: e.message });
+  }
+});
+
 router.post("/usuarios/:id/senha-provisoria", async (req, res) => {
   try {
     const id = Number(req.params.id);
