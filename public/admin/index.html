@@ -327,7 +327,8 @@ const el = (id) => document.getElementById(id);
 const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
 const iniciais = (n) => (n || "?").split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]).join("").toUpperCase();
 // <img> da foto por cima das iniciais; se não houver foto (404) o onerror remove e ficam as iniciais.
-const fotoOverlay = (nome) => FOTO_BASE ? `<img class="avph" alt="" loading="lazy" src="${FOTO_BASE}/api/foto/${encodeURIComponent(nome)}" onerror="this.remove()">` : "";
+// Usa o /api/foto do PRÓPRIO IAM (same-origin): upload → 302 direto pro Blob (rápido); senão → PCP/People.
+const fotoOverlay = (nome) => `<img class="avph" alt="" loading="lazy" decoding="async" src="/api/foto/${encodeURIComponent(nome)}" onerror="this.remove()">`;
 // avatar pequeno pra lista (iniciais + foto sobreposta)
 const avatarMini = (nome) => `<span class="avm">${esc(iniciais(nome))}${fotoOverlay(nome)}</span>`;
 
