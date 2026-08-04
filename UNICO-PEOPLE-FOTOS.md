@@ -276,6 +276,32 @@ Para um nome, resolva nesta ordem e pare no primeiro que existir:
 Chave de casamento em todos: **nome normalizado** (mesma `norm` da §4). A `FOTO_PERFIL`
 também guarda CPF, pra o painel de usuários poder juntar por CPF.
 
+### Endpoint único `GET /api/foto/:nome` (o que OUTROS sistemas consomem)
+
+Dentro do PCP a ordem acima é resolvida no helper `fotoDe()` ao montar as listas. Para **outros
+sistemas** (o Painel ADM Larsil/IAM, o gerador de tarefas, etc.) existe **um endpoint por nome** que
+faz a mesma resolução e **stream** dos bytes (não redirect), com **CORS liberado**:
+
+```
+GET https://<pcp>/api/foto/<nome>     →  upload (FOTO_PERFIL) senão Unico People, como image/*
+   Access-Control-Allow-Origin: *     →  consumível de qualquer origem, via <img> ou fetch
+```
+
+No consumidor é só `<img src="{PCP_URL}/api/foto/{nome}">` (ex.: o IAM lê `FOTO_BASE_URL` = URL do PCP).
+Onde não houver foto → 404 → o front mostra as iniciais.
+
+> ⚠️ **Casamento é por NOME** (normalizado). Se o nome que o sistema consumidor tem for **diferente**
+> do nome com que a foto foi enviada, ele **erra o upload e cai no People**. Medido em produção:
+> conta cujo `NOME` estava encurtado ("EDUARDO FERREIRA") não achava o upload salvo como
+> "EDUARDO FERREIRA DA SILVA". **Regra:** mantenha o `NOME` do consumidor igual ao do cadastro
+> (COLABORADORES). **Melhoria recomendada:** o upload passar a gravar **CPF** em `FOTO_PERFIL` e o
+> resolvedor aceitar `?cpf=` — casar por CPF elimina o problema de nome de vez.
+
+> ⚠️ **Cache × troca de foto.** O `/api/foto` responde com `Cache-Control` (upload curto, People
+> mais longo). Depois de uma troca, o consumidor pode ver a foto antiga até o cache expirar — um
+> **hard-refresh** (Ctrl+Shift+R) mostra na hora. Se precisar refletir mais rápido, baixe o
+> `max-age` do fallback do People (hoje 3600s) pra ~60–120s.
+
 ### A tabela `FOTO_PERFIL`
 
 A imagem **não** fica no banco — vai pro Blob e o banco guarda só a **URL**. (Guardar

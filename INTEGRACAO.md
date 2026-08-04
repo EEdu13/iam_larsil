@@ -206,6 +206,19 @@ A pessoa só "tem" a permissão quando o papel concede (ou por exceção individ
 
 ---
 
+## 5.3 Foto de perfil (avatar) — padrão de toda a Larsil
+
+A identidade (IAM) **não** guarda foto. A foto de perfil é resolvida pelo **PCP**, na ordem
+**upload do usuário → Unico People (fallback)**, e exposta por um endpoint único por nome:
+
+```
+<img src="{PCP_URL}/api/foto/{nome}">     → devolve a imagem (upload ou People), CORS liberado
+```
+
+No seu sistema, use o `NOME` que vem no token e mostre `<img>` com fallback pra iniciais no `onerror`.
+Mantenha o `NOME` igual ao do cadastro (senão o casamento por nome erra o upload). Detalhes,
+segurança e a melhoria por CPF: ver **UNICO-PEOPLE-FOTOS.md** (§7).
+
 ## 6. Checklist do projeto novo
 - [ ] Não criar tabela de login/usuário própria
 - [ ] Login chama `POST /api/auth/login` (nunca compara senha na mão)
