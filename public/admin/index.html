@@ -65,6 +65,9 @@
   .topbar .who .nm{color:#fff;font-weight:600}
   .topbar .who .btn{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.22);color:#fff;box-shadow:none}
   .topbar .who .btn:hover{background:rgba(255,255,255,.2)}
+  .topbar .who .who-av{width:34px;height:34px;font-size:13px;box-shadow:0 0 0 2px rgba(255,255,255,.22)}
+  .topbar .who .who-txt{display:flex;flex-direction:column;line-height:1.15;text-align:right}
+  .topbar .who .who-role{font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:rgba(255,255,255,.62);font-weight:700;margin-top:1px}
 
   .body{flex:1;display:flex;min-height:0}
   .rail{width:214px;flex-shrink:0;padding:14px 10px;background:var(--card);border-right:1px solid var(--line)}
@@ -222,7 +225,11 @@
   <div class="topbar">
     <div class="mark">L</div>
     <div class="brand">Painel ADM Larsil<span>identidade &amp; acessos</span></div>
-    <div class="who"><span class="nm" id="whoName"></span><button class="btn sm" id="btnSair">Sair</button></div>
+    <div class="who">
+      <span class="who-txt"><span class="nm" id="whoName"></span><span class="who-role" id="whoRole"></span></span>
+      <span class="avm who-av" id="whoAvatar"></span>
+      <button class="btn sm" id="btnSair">Sair</button>
+    </div>
   </div>
   <div class="body">
     <nav class="rail">
@@ -357,7 +364,10 @@ el("btnSair").onclick = () => { localStorage.clear(); location.reload(); };
 
 async function entrar() {
   el("loginView").classList.add("hidden"); el("appView").classList.remove("hidden");
-  el("whoName").textContent = USER.nome + " · " + USER.login;
+  el("whoName").textContent = USER.nome;
+  el("whoName").title = USER.login;
+  el("whoRole").textContent = (USER.papeis && USER.papeis.length) ? USER.papeis.join(" · ") : USER.login;
+  el("whoAvatar").innerHTML = esc(iniciais(USER.nome)) + fotoOverlay(USER.nome);
   try { CAT = await api("/admin/catalogo"); } catch {}
   try { ESCOPO_OPC = await api("/admin/escopo-opcoes"); } catch {}
   try { FOTO_BASE = (await api("/admin/ui-config")).fotoBase || ""; } catch {}
