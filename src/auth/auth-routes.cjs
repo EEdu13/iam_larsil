@@ -139,15 +139,20 @@ router.get("/me", requireAuth, (req, res) => {
 router.get("/resolve", requireAuth, async (req, res) => {
   try {
     const pool = await getPool();
-    // conta pode ter sido DESATIVADA pela TI depois que o token foi emitido → derruba a sessão
+    // conta pode ter sido DESATIVADA pela TI depois que o token foi emitido → derruba a sessão.
+    // Traz também nome/email/telefone p/ o consumidor atualizar o contato no F5 (sem relogar).
     const st = await pool.request().input("id", sql.Int, req.usuario.sub)
-      .query(`SELECT ATIVO FROM ${IAM_SCHEMA}.IAM_USUARIOS WHERE ID=@id`);
+      .query(`SELECT ATIVO, NOME, EMAIL, TELEFONE_EMPRESARIAL FROM ${IAM_SCHEMA}.IAM_USUARIOS WHERE ID=@id`);
     const row = st.recordset[0];
     if (!row || row.ATIVO === false) {
       return res.status(403).json({ erro: "Sua conta está desativada. Entre em contato com a TI da empresa.", motivo: "INATIVO" });
     }
     const acesso = await resolverAcesso(pool, req.usuario.sub);
-    res.json({ usuario_id: req.usuario.sub, ...acesso });
+    res.json({
+      usuario_id: req.usuario.sub,
+      nome: row.NOME, email: row.EMAIL || null, telefone: row.TELEFONE_EMPRESARIAL || null,
+      ...acesso,
+    });
   } catch (e) {
     console.error("[resolve]", e.message);
     res.status(500).json({ erro: "Falha ao resolver acesso" });
