@@ -14,6 +14,7 @@ const authRoutes = require("./auth/auth-routes.cjs");
 const adminRoutes = require("./auth/admin-routes.cjs");
 const registryRoutes = require("./auth/registry-routes.cjs");
 const fotoRoutes = require("./auth/foto-routes.cjs");
+const { sincronizarColaboradores } = require("./lib/sync-colaboradores.cjs");
 
 const app = express();
 app.use(cors({ origin: true, credentials: true }));
@@ -35,3 +36,21 @@ const PORT = Number(process.env.AUTH_PORT || process.env.PORT || 4000);
 app.listen(PORT, () => {
   console.log(`Painel ADM Larsil rodando na porta ${PORT}  (tela: /admin)`);
 });
+
+// ── Sync automático com dbo.COLABORADORES (novos contratados aparecem sozinhos) ──
+// Roda 30s após subir e a cada 6h. Só adiciona/atualiza ATIVOS; não mexe em senha/papel/escopo.
+let SYNC_EM_ANDAMENTO = false;
+async function rodarSync(motivo) {
+  if (SYNC_EM_ANDAMENTO) return;
+  SYNC_EM_ANDAMENTO = true;
+  try {
+    const r = await sincronizarColaboradores();
+    console.log(`[sync-colaboradores] (${motivo}) fonte=${r.fonte} novos=${r.inseridos} atualizados=${r.atualizados}`);
+  } catch (e) {
+    console.error(`[sync-colaboradores] (${motivo}) falhou:`, e.message);
+  } finally {
+    SYNC_EM_ANDAMENTO = false;
+  }
+}
+setTimeout(() => rodarSync("startup"), 30_000);
+setInterval(() => rodarSync("intervalo"), 6 * 60 * 60 * 1000);

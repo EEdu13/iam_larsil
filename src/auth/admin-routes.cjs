@@ -12,10 +12,20 @@ const { hashSenha, gerarSenhaProvisoria } = require("../lib/hash.cjs");
 const { auditar } = require("../lib/audit.cjs");
 const { resolverAcesso } = require("../lib/acesso.cjs");
 const { gerarLoginUnico } = require("../lib/login.cjs");
+const { sincronizarColaboradores } = require("../lib/sync-colaboradores.cjs");
 const { requireAdmin } = require("./middleware.cjs");
 
 const router = express.Router();
 router.use(requireAdmin);
+
+// Sincroniza agora com dbo.COLABORADORES (botão do console). O servidor também roda sozinho a cada 6h.
+router.post("/sincronizar", async (req, res) => {
+  try {
+    const r = await sincronizarColaboradores();
+    try { await auditar(await getPool(), { acao: "SYNC_MANUAL", detalhe: r, ator: req.usuario.login }); } catch { /* best-effort */ }
+    res.json({ ok: true, ...r });
+  } catch (e) { console.error("[sincronizar]", e.message); res.status(500).json({ erro: "Falha ao sincronizar", detalhe: e.message }); }
+});
 
 // Config da UI do console. fotoBase = URL do PCP que resolve a foto por nome
 // (GET {fotoBase}/api/foto/{nome} → upload do usuário ou Unico People). Vazio = sem foto (só iniciais).

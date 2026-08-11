@@ -254,7 +254,8 @@
             <option value="ATIVO">Ativos</option>
           </select>
           <span class="count" id="count"></span>
-          <button class="btn pri" id="btnNovo" style="margin-left:auto">+ Novo usuário</button>
+          <button class="btn ghost" id="btnSync" style="margin-left:auto" title="Puxa novos colaboradores ativos do RH. O sistema também sincroniza sozinho a cada 6h.">↻ Sincronizar</button>
+          <button class="btn pri" id="btnNovo">+ Novo usuário</button>
         </div>
         <div class="grid-wrap">
           <table>
@@ -393,6 +394,15 @@ const novoScrim = el("novoScrim");
 function abrirNovo() { ["nvNome","nvCpf","nvMat","nvEmail","nvTel"].forEach((i) => el(i).value = ""); el("nvErr").textContent = ""; novoScrim.style.display = "flex"; el("nvNome").focus(); }
 function fecharNovo() { novoScrim.style.display = "none"; }
 el("btnNovo").onclick = abrirNovo;
+el("btnSync").onclick = async () => {
+  const b = el("btnSync"); const txt = b.textContent; b.disabled = true; b.textContent = "Sincronizando…";
+  try {
+    const r = await api("/admin/sincronizar", { method: "POST" });
+    toast(`Sincronizado com o RH: <b>${r.inseridos}</b> novo(s), ${r.atualizados} atualizado(s).`);
+    offset = 0; await carregar();
+  } catch (e) { toast("Erro ao sincronizar: " + esc(e.message)); }
+  finally { b.disabled = false; b.textContent = txt; }
+};
 el("nvCancel").onclick = fecharNovo;
 novoScrim.addEventListener("click", (e) => { if (e.target === novoScrim) fecharNovo(); });
 el("nvSalvar").onclick = async () => {
