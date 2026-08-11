@@ -30,13 +30,19 @@ async function sincronizarColaboradores({ todos = false } = {}) {
     }))
     .filter((r) => r.cpf.length === 11 && r.nome.length > 0);
 
-  const existentes = await pool.request().query(`SELECT LOGIN, CPF FROM ${IAM_SCHEMA}.IAM_USUARIOS`);
+  const existentes = await pool.request().query(`SELECT LOGIN, CPF, NOME, MATRICULA, ATIVO FROM ${IAM_SCHEMA}.IAM_USUARIOS`);
   const usados = new Set(existentes.recordset.map((r) => String(r.LOGIN).toLowerCase()));
-  const cpfExistente = new Set(existentes.recordset.map((r) => String(r.CPF)));
+  // mapa por CPF com o snapshot atual, pra só dar UPDATE em quem REALMENTE mudou (senão são
+  // centenas de round-trips inúteis ao Azure a cada sync → demora demais).
+  const porCpf = new Map(existentes.recordset.map((r) => [String(r.CPF), r]));
+  const eq = (a, b) => String(a ?? "").trim() === String(b ?? "").trim();
 
-  let inseridos = 0, atualizados = 0, colisoes = 0;
+  let inseridos = 0, atualizados = 0, inalterados = 0, colisoes = 0;
   for (const r of rows) {
-    if (cpfExistente.has(r.cpf)) {
+    const atual = porCpf.get(r.cpf);
+    if (atual) {
+      const mudou = !eq(atual.NOME, r.nome) || !eq(atual.MATRICULA, r.matricula) || Number(atual.ATIVO) !== r.ativo;
+      if (!mudou) { inalterados++; continue; }   // nada a fazer → sem ida ao banco
       await pool.request()
         .input("cpf", sql.Char(11), r.cpf).input("matricula", sql.VarChar(20), r.matricula)
         .input("nome", sql.NVarChar(255), r.nome).input("ativo", sql.Bit, r.ativo)
@@ -55,11 +61,11 @@ async function sincronizarColaboradores({ todos = false } = {}) {
                 INSERT INTO ${IAM_SCHEMA}.IAM_AUDITORIA (USUARIO_ID,ACAO,DETALHE,ATOR)
                 VALUES (SCOPE_IDENTITY(),'IDENTIDADE_CRIADA',
                         (SELECT @cpf cpf,@login login,@nome nome FOR JSON PATH, WITHOUT_ARRAY_WRAPPER),'SYNC')`);
-      cpfExistente.add(r.cpf); usados.add(g.login.toLowerCase());
+      porCpf.set(r.cpf, { NOME: r.nome, MATRICULA: r.matricula, ATIVO: r.ativo }); usados.add(g.login.toLowerCase());
       inseridos++;
     }
   }
-  return { fonte: rows.length, inseridos, atualizados, colisoes, em: new Date().toISOString() };
+  return { fonte: rows.length, inseridos, atualizados, inalterados, colisoes, em: new Date().toISOString() };
 }
 
 module.exports = { sincronizarColaboradores };
