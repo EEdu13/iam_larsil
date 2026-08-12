@@ -51,6 +51,24 @@ Se `senha_provisoria === true`, force o fluxo de 1º acesso (ver seção 4) ante
 
 ---
 
+## 1.5. Registrar o acesso ao seu sistema (aparece no perfil da pessoa)
+
+Depois do login bem-sucedido, o seu backend chama **uma vez** (fire-and-forget, com o Bearer do
+usuário) pra registrar que a pessoa **entrou no seu sistema**:
+
+```js
+// no login, após pegar o token:
+fetch(`${IAM_URL}/api/auth/acesso`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+  body: JSON.stringify({ sistema: "CONTROLERH" }),   // o CÓDIGO do seu sistema
+}).catch(() => {});   // não bloqueia o login se falhar
+```
+
+O IAM grava isso central (em `IAM_AUDITORIA`) e mostra no perfil da pessoa: *"acessou Controle RH em
+12/08 14:30"*. **Você não escreve em tabela nenhuma do IAM** — é isso que dá o "sem permissão" quando se
+tenta gravar direto; o certo é este endpoint.
+
 ## 2. Como o seu backend valida o token
 
 Toda requisição do seu front manda o header:
