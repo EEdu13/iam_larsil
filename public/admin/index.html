@@ -372,6 +372,7 @@ async function entrar() {
   try { CAT = await api("/admin/catalogo"); } catch {}
   try { ESCOPO_OPC = await api("/admin/escopo-opcoes"); } catch {}
   try { FOTO_BASE = (await api("/admin/ui-config")).fotoBase || ""; } catch {}
+  api("/auth/acesso", { method: "POST", body: JSON.stringify({ sistema: "IAM" }) }).catch(() => {}); // registra acesso ao próprio console
   renderSistemas(); renderPapeis(); carregar();
 }
 
@@ -470,7 +471,7 @@ function renderTopo() {
   el("aSenha").onclick = gerarSenha;
   el("aEstado").onclick = () => mut("POST", `/admin/usuarios/${dId}/estado`, { ativo: !dDet.usuario.ATIVO });
 
-  const tabs = [["acessos", "Acessos"], ["perfil", "Perfil"], ["treino", "Treinamento"]];
+  const tabs = [["acessos", "Acessos"], ["perfil", "Perfil"], ["treino", "Treinamento"], ["logs", "Logs"]];
   el("dwTabs").innerHTML = tabs.map(([k, l]) => `<button data-tab="${k}" class="${dTab === k ? "on" : ""}">${l}</button>`).join("");
   el("dwTabs").querySelectorAll("[data-tab]").forEach((b) => b.onclick = () => { dTab = b.dataset.tab; renderTopo(); renderTab(); });
 }
@@ -478,7 +479,40 @@ function renderTopo() {
 function renderTab() {
   if (dTab === "perfil") return renderPerfil();
   if (dTab === "treino") return renderTreino();
+  if (dTab === "logs") return renderLogs();
   return renderAcessos();
+}
+
+// Logs do usuário: o que ELE fez (acessou sistema, logou) e o que fizeram NELE (liberaram tela, etc.)
+const ACAO_LABEL = {
+  ACESSO_SISTEMA: "acessou", LOGIN_OK: "fez login", LOGIN_BLOQUEADO_INATIVO: "login bloqueado (inativo)",
+  IDENTIDADE_CRIADA: "identidade criada", USUARIO_CRIADO_MANUAL: "criado manualmente",
+  PAPEL_ADICIONADO: "papel adicionado", PAPEL_REMOVIDO: "papel removido",
+  ESCOPO_ADICIONADO: "escopo adicionado", ESCOPO_REMOVIDO: "escopo removido",
+  ESCOPO_DESTRAVADO: "escopo destravado", ESCOPO_TRANSFERIDO: "escopo transferido",
+  EXCECOES_LOTE: "telas em lote", SENHA_PROVISORIA: "senha provisória gerada",
+  ESTADO_ALTERADO: "ativado/desativado", ONBOARDING: "1º acesso concluído",
+};
+async function renderLogs() {
+  el("dwBody").innerHTML = '<div class="block"><div class="bc"><div class="hint">Carregando logs…</div></div></div>';
+  let logs = [];
+  try { logs = (await api(`/admin/usuarios/${dId}/logs`)).logs || []; }
+  catch (e) { el("dwBody").innerHTML = '<div class="block"><div class="bc"><div class="hint">' + esc(e.message) + '</div></div></div>'; return; }
+  const meuLogin = (dDet.usuario.LOGIN || "").toLowerCase();
+  const linha = (a) => {
+    let d = {}; try { d = a.DETALHE ? JSON.parse(a.DETALHE) : {}; } catch {}
+    const label = ACAO_LABEL[a.ACAO] || a.ACAO;
+    const sis = d.nome || d.sistema || "";
+    const feitoPorMim = String(a.ATOR || "").toLowerCase() === meuLogin;
+    const quem = feitoPorMim ? "" : `<span class="hint"> · por ${esc(a.ATOR || "?")}</span>`;
+    const quando = new Date(a.CRIADO_EM).toLocaleString("pt-BR");
+    return `<div style="display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--line)">
+      <span><b>${esc(label)}</b>${sis ? " " + esc(sis) : ""}${quem}</span>
+      <span class="hint" style="white-space:nowrap">${esc(quando)}</span></div>`;
+  };
+  el("dwBody").innerHTML = `<div class="block">
+    <div class="bh"><h4>Logs & acessos</h4><p>O que a pessoa fez (acessos, login) e o que fizeram no acesso dela. Últimos 200.</p></div>
+    <div class="bc">${logs.length ? logs.map(linha).join("") : '<div class="hint">Sem registros ainda.</div>'}</div></div>`;
 }
 
 function renderPerfil() {

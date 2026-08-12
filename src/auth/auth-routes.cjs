@@ -159,6 +159,22 @@ router.get("/resolve", requireAuth, async (req, res) => {
   }
 });
 
+// POST /api/auth/acesso — o sistema consumidor registra que a pessoa ENTROU nele.
+// Aparece no perfil dela: "acessou <Sistema> em <data/hora>". O consumidor chama isto no
+// login (com o Bearer do usuário). Grava central em IAM_AUDITORIA — sem tocar em schema.
+router.post("/acesso", requireAuth, async (req, res) => {
+  try {
+    const sistema = String(req.body?.sistema || "").toUpperCase().trim();
+    if (!sistema) return res.status(400).json({ erro: "sistema obrigatório" });
+    const pool = await getPool();
+    const s = await pool.request().input("c", sql.VarChar, sistema)
+      .query(`SELECT NOME FROM ${IAM_SCHEMA}.IAM_SISTEMAS WHERE CODIGO=@c`);
+    const nomeSis = s.recordset[0] ? s.recordset[0].NOME : sistema; // nome bonito, se cadastrado
+    await auditar(pool, { usuarioId: req.usuario.sub, acao: "ACESSO_SISTEMA", detalhe: { sistema, nome: nomeSis }, ator: req.usuario.login });
+    res.json({ ok: true });
+  } catch (e) { console.error("[acesso]", e.message); res.status(500).json({ erro: "Falha ao registrar acesso" }); }
+});
+
 // Registra um pedido de acesso a uma tela (a pessoa clicou "pedir acesso" no sistema consumidor).
 // Fica na auditoria para a TI ver quem pediu o quê.
 router.post("/solicitar-acesso", requireAuth, async (req, res) => {

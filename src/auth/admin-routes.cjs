@@ -33,6 +33,23 @@ router.get("/ui-config", (_req, res) => {
   res.json({ fotoBase: (process.env.FOTO_BASE_URL || "").replace(/\/$/, "") });
 });
 
+// Histórico/logs de um usuário: o que ELE fez (ATOR=login, ex.: acessou o PCP, logou) e o que
+// fizeram NELE (USUARIO_ID, ex.: TI liberou tela, gerou senha). Da tabela central IAM_AUDITORIA.
+router.get("/usuarios/:id/logs", async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    const pool = await getPool();
+    const login = (await pool.request().input("id", sql.Int, id)
+      .query(`SELECT LOGIN FROM ${IAM_SCHEMA}.IAM_USUARIOS WHERE ID=@id`)).recordset[0]?.LOGIN || "";
+    const r = await pool.request().input("id", sql.Int, id).input("login", sql.NVarChar(120), login)
+      .query(`SELECT TOP 200 ID, ACAO, DETALHE, ATOR, CRIADO_EM
+                FROM ${IAM_SCHEMA}.IAM_AUDITORIA
+               WHERE USUARIO_ID=@id OR ATOR=@login
+               ORDER BY ID DESC`);
+    res.json({ logs: r.recordset });
+  } catch (e) { console.error("[logs]", e.message); res.status(500).json({ erro: "Falha ao ler logs" }); }
+});
+
 // Catálogo para os seletores da tela (papéis, sistemas, permissões).
 router.get("/catalogo", async (_req, res) => {
   try {
