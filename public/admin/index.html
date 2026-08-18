@@ -186,7 +186,7 @@
 
   .login-wrap{position:relative;display:grid;grid-template-columns:300px 1fr;width:100%;max-width:820px;
     border-radius:20px;overflow:hidden;background:var(--card);border:1px solid var(--line);
-    box-shadow:var(--sh-lg);animation:entraLogin .5s var(--re) both}
+    box-shadow:var(--sh-lg);animation:entraLogin .5s var(--re) backwards}
   /* Vidro: a malha e os rastros atravessam o cartão borrados — é o único lugar da tela
      onde o desfoque tem conteúdo de verdade atrás, e ele muda a cada quadro. */
   @supports ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
@@ -300,7 +300,11 @@
   .sel-txt{flex:1;min-width:0;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .sel-chev{width:13px;height:13px;flex-shrink:0;color:var(--ink-3);transition:transform .2s var(--re),color .2s}
   .sel[data-aberto="true"] .sel-chev{transform:rotate(180deg);color:var(--accent-d)}
-  /* fixed, não absolute: assim a lista não é recortada pelo corpo rolável da gaveta */
+  /* fixed, não absolute: assim a lista não é recortada pelo corpo rolável da gaveta.
+     Isso só vale enquanto NENHUM ancestral tiver transform, filter, perspective,
+     will-change ou contain — qualquer um deles rouba o bloco de contenção do fixed e a
+     lista passa a ser posicionada contra o ancestral, indo parar fora da tela. Ver a
+     nota em .anim-cascata: foi exatamente assim que a lista sumiu dentro da gaveta. */
   .sel-pop{position:fixed;z-index:56;max-height:min(320px,52vh);overflow:auto;overscroll-behavior:contain;
     padding:5px;background:var(--card);border:1px solid var(--line);border-radius:10px;box-shadow:var(--sh-lg);
     opacity:0;visibility:hidden;transform:translateY(-6px) scale(.985);
@@ -621,6 +625,9 @@
      repintura. Tirar os filhos do teste durante a rolagem elimina isso — o contêiner
      continua recebendo a roda normalmente. */
   .rolando>*{pointer-events:none}
+  /* exceção: uma lista aberta continua clicável. Sem isto, clicar numa opção nos 140ms
+     seguintes a uma rolagem da gaveta não fazia nada — pointer-events é herdado. */
+  .rolando .sel-pop.show{pointer-events:auto}
   /* Trava a rolagem com uma camada aberta. Quem rola de fato é o DOCUMENTO
      (o .main tem overflow:auto mas cresce com o conteúdo, então nunca rola sozinho).
      O padding repõe a largura da barra que some, para a página não pular. */
@@ -721,7 +728,15 @@
 
   /* entrada deslizando da esquerda; --i escalona os itens em cascata */
   @keyframes entraEsq{from{opacity:0;transform:translateX(-16px)}to{opacity:1;transform:none}}
-  .anim-cascata>*{animation:entraEsq .28s cubic-bezier(.2,.85,.25,1) both;animation-delay:calc(var(--i,0)*36ms)}
+  /* backwards, NÃO both. O "forwards" que vinha junto no both mantinha o quadro final
+     grudado no elemento para sempre — e um transform animado termina como matriz
+     identidade, não como none. Matriz identidade ainda é transform, e transform faz do
+     elemento o bloco de contenção de qualquer position:fixed dentro dele: cada .block
+     da gaveta virava a "janela" da lista do dropdown, que abria fora do campo de visão.
+     Aqui o fill só serve para segurar o quadro inicial durante o atraso do escalonamento,
+     e é isso que backwards faz. O quadro final é idêntico ao estado natural do elemento,
+     então soltá-lo não muda um pixel — e ainda libera uma camada de composição por bloco. */
+  .anim-cascata>*{animation:entraEsq .28s cubic-bezier(.2,.85,.25,1) backwards;animation-delay:calc(var(--i,0)*36ms)}
 
   .telarow{display:flex;align-items:center;gap:12px;padding:10px 15px;border-top:1px solid var(--line-2)}
   .telarow:first-of-type{border-top:0}
@@ -1556,7 +1571,9 @@ function montarSelect(nativo) {
   let marca = 0;
   const opcoes = () => [...nativo.options];
 
+  let dim = null; // altura/largura da lista; vale enquanto o conteúdo não muda
   const pintar = () => {
+    dim = null;
     const atual = nativo.options[nativo.selectedIndex];
     btn.innerHTML = `<span class="sel-txt">${esc(atual ? atual.textContent : "")}</span>` + SEL_CHEV;
     pop.innerHTML = opcoes().map((o, i) =>
@@ -1568,35 +1585,63 @@ function montarSelect(nativo) {
     const n = pop.children.length;
     if (!n) return;
     marca = (i + n) % n;
-    [...pop.children].forEach((o, k) => o.classList.toggle("sel-foco", k === marca));
-    pop.children[marca].scrollIntoView({ block: "nearest" });
+    const o = pop.children[marca];
+    [...pop.children].forEach((x, k) => x.classList.toggle("sel-foco", k === marca));
+    // Rola SÓ a lista, na mão. Aqui havia scrollIntoView(): ele sobe a cadeia inteira
+    // de ancestrais e o navegador rolava a .dw-body para "revelar" uma opção que mora
+    // num popup position:fixed — que não se move um pixel. Esse scroll inútil caía no
+    // ouvinte registrado logo abaixo em abrir() e fechava a lista no quadro seguinte:
+    // dentro da gaveta o dropdown piscava e sumia, e parecia que não abria.
+    if (o.offsetTop < pop.scrollTop) pop.scrollTop = o.offsetTop;
+    else if (o.offsetTop + o.offsetHeight > pop.scrollTop + pop.clientHeight)
+      pop.scrollTop = o.offsetTop + o.offsetHeight - pop.clientHeight;
     btn.setAttribute("aria-activedescendant", `${id}-${marca}`);
   };
 
   // Mede depois de visível (visibility:hidden ainda dá dimensão) e vira para cima
-  // quando não cabe embaixo. Nunca deixa vazar pela direita.
+  // quando não cabe embaixo. Nunca deixa vazar pela direita. A medida fica guardada:
+  // acompanhar o botão na rolagem não pode custar duas medições por quadro.
   const posicionar = () => {
     const r = btn.getBoundingClientRect();
-    pop.style.minWidth = r.width + "px";
-    pop.style.left = "0px"; pop.style.top = "0px";
-    const alt = pop.offsetHeight, larg = pop.offsetWidth;
-    const paraCima = r.bottom + 6 + alt > innerHeight - 8 && r.top - 6 - alt > 8;
-    pop.style.top = (paraCima ? r.top - 6 - alt : r.bottom + 6) + "px";
+    if (!dim) {
+      pop.style.minWidth = r.width + "px";
+      pop.style.left = "0px"; pop.style.top = "0px";
+      dim = { alt: pop.offsetHeight, larg: pop.offsetWidth };
+    }
+    const paraCima = r.bottom + 6 + dim.alt > innerHeight - 8 && r.top - 6 - dim.alt > 8;
+    pop.style.top = (paraCima ? r.top - 6 - dim.alt : r.bottom + 6) + "px";
     pop.style.transformOrigin = paraCima ? "bottom center" : "top center";
-    pop.style.left = Math.max(8, Math.min(r.left, innerWidth - 8 - larg)) + "px";
+    pop.style.left = Math.max(8, Math.min(r.left, innerWidth - 8 - dim.larg)) + "px";
+  };
+
+  /* Rolou o que está atrás: a lista ACOMPANHA o botão, em vez de fechar. Fechar era o
+     comportamento antigo e, além de derrubar o componente na abertura (ver marcar()),
+     matava a lista longa que rola por dentro — o próprio scroll dela chegava aqui. */
+  let quadroRol = 0;
+  const aoRolar = (e) => {
+    if (e.target === pop || (e.target.nodeType === 1 && pop.contains(e.target))) return;
+    if (quadroRol) return;
+    quadroRol = requestAnimationFrame(() => {
+      quadroRol = 0;
+      if (selAberto !== api) return;
+      const r = btn.getBoundingClientRect();
+      if (r.bottom < 8 || r.top > innerHeight - 8) fechar(); // o botão saiu da tela
+      else posicionar();
+    });
   };
 
   const foraDoAlvo = (e) => { if (!cx.contains(e.target)) fechar(); };
   const fechar = () => {
     if (selAberto !== api) return;
     selAberto = null;
+    dim = null;
     cx.dataset.aberto = "false";
     pop.classList.remove("show");
     btn.setAttribute("aria-expanded", "false");
     btn.removeAttribute("aria-activedescendant");
     document.removeEventListener("mousedown", foraDoAlvo);
     // captura: pega rolagem de qualquer contêiner, não só da janela
-    document.removeEventListener("scroll", fechar, true);
+    document.removeEventListener("scroll", aoRolar, true);
     window.removeEventListener("resize", fechar);
   };
   const abrir = () => {
@@ -1609,7 +1654,7 @@ function montarSelect(nativo) {
     pop.classList.add("show");
     marcar(nativo.selectedIndex < 0 ? 0 : nativo.selectedIndex);
     document.addEventListener("mousedown", foraDoAlvo);
-    document.addEventListener("scroll", fechar, true);
+    document.addEventListener("scroll", aoRolar, true);
     window.addEventListener("resize", fechar);
   };
   const escolher = (i) => {
