@@ -34,6 +34,13 @@
     --hov:#f1f4f3; --hov-2:#e4eae7; --mut:#ccd4d0; --mut-2:#b3bdb8;
     --topbar:56px;
     --brd-ok:#c1e5d3; --brd-warn:#ecd9ae; --brd-no:#eec7c2;
+    /* Glow dos chips de status: cor solta, não par de tema de texto — --amber é
+       escurecido de propósito para dar contraste de texto sobre --amber-t, e usado
+       num box-shadow ele saía barrento. Aqui é só brilho, não precisa passar AA. */
+    --glow-ok:rgba(15,122,84,.4); --glow-warn:rgba(217,119,6,.4); --glow-no:rgba(189,51,42,.38);
+    /* verde do WhatsApp, escurecido para passar contraste sobre --card no tema claro */
+    --zap:#0f7a4a; --zap-d:#0a5533; --zap-t:#e2f4ea;
+    --mail:#2563a8; --mail-d:#1a4a7f; --mail-t:#e4eefa;
     --grad-a:#15916a; --grad-b:#0c5a40; --glow:#e4f2ea;
     --herd:#586360; --trilho:#e0e6e3; --mix:#8a7c4e; --flash:#1cae79;
     --spin:rgba(17,23,20,.18);
@@ -77,6 +84,9 @@
     --hd:#0d2f23; --hd-2:#09231a;
     --hov:#222b30; --hov-2:#2b353b; --mut:#3d484e; --mut-2:#4b585f;
     --brd-ok:#2a5e49; --brd-warn:#5c4a22; --brd-no:#6b3a34;
+    --glow-ok:rgba(95,210,161,.4); --glow-warn:rgba(227,185,104,.35); --glow-no:rgba(242,134,124,.4);
+    --zap:#4bd583; --zap-d:#7ee6a8; --zap-t:#12301f;
+    --mail:#7ab4ec; --mail-d:#a3cdf5; --mail-t:#152436;
     --grad-a:#1c9e73; --grad-b:#0f6146; --glow:#14332a;
     --herd:#4a555c; --trilho:#2a3338; --mix:#a68f56; --flash:#3ad197;
     --spin:rgba(255,255,255,.18);
@@ -544,6 +554,21 @@
   .node.on{background:var(--accent);box-shadow:0 0 0 3px var(--tint)}
   .node.off{background:var(--mut)}
 
+  /* ══ Glow de status — só na tabela de Usuários ══
+     .chip e .node.on aparecem em dezenas de outros lugares (Auditoria, grupos de
+     telas, cards de sistema/papel): pulsar tudo isso a cada volta viraria vibração
+     de fundo constante em vez de um sinal pontual nas três colunas que o pedido
+     pediu. Por isso o seletor entra pelo #gridWrap/#tbody — só ali pulsa; o resto
+     do app usa .chip/.node parados como sempre usou. .chip.mut ("Sem senha") fica
+     de fora de propósito: é o estado neutro, sem categoria — o glow existe para
+     puxar o olho para o que pede atenção, não para brilhar tudo igual. */
+  @keyframes pulsoChip{0%,100%{box-shadow:0 0 0 0 var(--glow-cor,transparent)}50%{box-shadow:0 0 8px 1px var(--glow-cor,transparent)}}
+  @keyframes pulsoNode{0%,100%{box-shadow:0 0 0 3px var(--tint),0 0 0 0 var(--glow-cor,transparent)}50%{box-shadow:0 0 0 3px var(--tint),0 0 8px 2px var(--glow-cor,transparent)}}
+  #gridWrap .chip.ok{--glow-cor:var(--glow-ok);animation:pulsoChip 2.6s ease-in-out infinite}
+  #gridWrap .chip.warn{--glow-cor:var(--glow-warn);animation:pulsoChip 2.6s ease-in-out infinite}
+  #gridWrap .chip.no{--glow-cor:var(--glow-no);animation:pulsoChip 2.6s ease-in-out infinite}
+  #tbody .node.on{--glow-cor:var(--glow-ok);animation:pulsoNode 2.6s ease-in-out infinite}
+
   .pager{display:flex;gap:9px;align-items:center;margin-top:14px;font-size:12.5px;color:var(--ink-3);font-weight:600}
 
   /* ══ AUDITORIA ══ */
@@ -686,6 +711,37 @@
   .dl dt{color:var(--ink-3);font-weight:600;font-size:12px;align-self:center}
   .dl dd{margin:0}
 
+  /* ── Contato: valor à esquerda, ações à direita ── */
+  .ct{display:flex;align-items:center;gap:8px;min-width:0}
+  .ct-v{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  /* Empurra o botão de copiar para a borda direita do bloco, longe do valor: colado
+     nele, o alvo do clique competiria com a seleção do texto. */
+  .ct-copiar{margin-left:auto;flex-shrink:0;border:1px solid transparent;background:transparent;
+    color:var(--ink-3);width:26px;height:26px;border-radius:7px;display:grid;place-items:center;
+    opacity:0;transition:opacity .14s,background .12s,color .12s,border-color .12s}
+  /* Só aparece com o ponteiro na linha — três ícones parados competiriam com o dado,
+     que é o que se vem ler aqui. Teclado e toque não têm hover, então ali fica sempre
+     visível: sem isto o botão seria inalcançável nesses dois casos. */
+  .dl dd:hover .ct-copiar,.ct-copiar:focus-visible{opacity:1}
+  @media(hover:none){.ct-copiar{opacity:1}}
+  .ct-copiar:hover{background:var(--hov);border-color:var(--line);color:var(--ink)}
+  .ct-copiar.ok{opacity:1;color:var(--accent-d);background:var(--tint);border-color:var(--brd-ok)}
+  .ct-copiar svg{width:13px;height:13px}
+  .ct-link{display:inline-flex;align-items:center;gap:6px;min-width:0;font-weight:600;
+    text-decoration:none;border-radius:6px;padding:1px 4px;margin-left:-4px;
+    transition:background .12s,color .12s}
+  .ct-link:hover{text-decoration:underline}
+  .ct-link svg{width:14px;height:14px;flex-shrink:0}
+  .ct-link span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  /* Dois canais externos, um embaixo do outro. O ícone já os separa, mas a cor precisa
+     separar também: dois links verdes empilhados leriam como a mesma ação. Telefone
+     fica com o verde do WhatsApp, e-mail com o azul que é a convenção de mailto.
+     Nenhum dos dois usa --accent — não são ações do painel, são saídas para fora. */
+  .ct-zap{color:var(--zap)}
+  .ct-zap:hover{background:var(--zap-t);color:var(--zap-d)}
+  .ct-mail{color:var(--mail)}
+  .ct-mail:hover{background:var(--mail-t);color:var(--mail-d)}
+
   .tag{display:inline-flex;align-items:center;gap:7px;background:var(--hov);border:1px solid var(--line);border-radius:7px;padding:5px 7px 5px 11px;font-size:12.5px;font-weight:600}
   .tag.esc{background:var(--tint);border-color:var(--brd-ok);color:var(--accent-d)}
   .tag button{background:transparent;border:0;color:var(--ink-3);font-size:14px;line-height:1;padding:0 2px}
@@ -824,10 +880,14 @@
   .sd.show{visibility:visible;transform:none;opacity:1;transition:transform var(--ent),opacity .18s,visibility 0s}
   /* O de pessoas encosta na borda: é uma gaveta, entra deslizando por inteiro como o
      .drawer. Sem fade — gaveta que desbota na entrada parece falha de pintura. */
-  .sd-pessoas{right:0;width:min(440px,100%);transform:translateX(100%);opacity:1}
+  .sd-pessoas{right:0;width:min(380px,100%);transform:translateX(100%);opacity:1}
   /* O de permissões não nasce numa borda: abre ao LADO do de pessoas, então desliza
      pouco e aparece. Distância curta para o que surge perto, longa para o que vem de fora. */
-  .sd-perms{right:min(440px,100%);width:min(560px,100vw - 440px);z-index:42}
+  .sd-perms{right:min(380px,100%);width:min(500px,100vw - 380px);z-index:42}
+  /* Terceiro painel, à esquerda de tudo: perfil e treinamento de quem vai receber as
+     telas. 380+500+440 = 1320px — é o piso para os três caberem lado a lado; abaixo
+     disso a media query manda o de pessoas sair de cena. */
+  .sd-perfil{right:min(880px,100%);width:min(440px,100vw - 880px);z-index:43}
   .sd-top{background:var(--card);border-bottom:1px solid var(--line);flex-shrink:0;padding:16px 18px}
   .sd-head{display:flex;align-items:center;gap:12px}
   .sd-head h3{margin:0;font-size:16px;font-weight:700;letter-spacing:-.02em;flex:1;min-width:0;
@@ -838,6 +898,24 @@
   .sd-x:hover,.sd-voltar:hover{background:var(--hov);color:var(--ink)}
   .sd-body{flex:1;overflow:auto;padding:14px 18px 20px}
   .sd-pe{flex-shrink:0;padding:12px 18px;background:var(--card);border-top:1px solid var(--line)}
+
+  /* ── topo do painel de Perfil: identidade, troca de pessoa, abas ──
+     Repete a anatomia da gaveta de Usuários de propósito: é a mesma informação, e
+     aprender duas gramáticas para a mesma coisa é custo à toa. As abas encostam na
+     borda de baixo, então o .sd-top perde o padding inferior e elas furam o lateral. */
+  .sd-perfil .sd-top{padding-bottom:0}
+  .sd-perfil .dw-tabs{border-top:0;margin:0 -18px;padding:0 12px}
+  /* Troca de pessoa: as marcadas lado a lado, a atual destacada. Faixa rolável na
+     horizontal — com muitas marcadas, quebrar linha empurraria as abas para fora. */
+  .sp-quem{display:flex;gap:6px;margin-top:12px;overflow-x:auto;padding-bottom:2px;overscroll-behavior-x:contain}
+  .sp-quem button{display:inline-flex;align-items:center;gap:7px;flex-shrink:0;max-width:190px;
+    border:1px solid var(--line);background:var(--card-2);color:var(--ink-2);
+    padding:3px 11px 3px 3px;border-radius:999px;font-size:12px;font-weight:600;
+    transition:background .14s,border-color .14s,color .14s}
+  .sp-quem button:hover{background:var(--hov);color:var(--ink)}
+  .sp-quem button.on{background:var(--tint);border-color:var(--brd-ok);color:var(--accent-d)}
+  .sp-quem .avm{width:22px;height:22px;font-size:9px}
+  .sp-quem button>span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
   /* barra de seleção múltipla */
   .sd-multi{display:flex;align-items:center;gap:10px;margin-top:12px;font-size:12.5px}
@@ -895,10 +973,19 @@
   .scard-mais svg{width:11px;height:11px;transition:transform var(--rt) var(--re)}
   .scard.aberto .scard-mais svg{transform:rotate(180deg)}
 
+  /* Faixa em que cabem dois painéis mas não três: o de pessoas sai de cena enquanto o
+     Perfil está aberto, e volta quando ele fecha. Some a lista, não o que se está
+     editando — quem abriu o Perfil está olhando para ele, não para a lista. */
+  @media(min-width:1101px) and (max-width:1320px){
+    body.sp-aberto .sd-pessoas{transform:translateX(100%);visibility:hidden}
+    body.sp-aberto .sd-perms{right:0}
+    body.sp-aberto .sd-perfil{right:min(500px,100%);width:min(440px,100vw - 500px)}
+  }
   @media(max-width:1100px){
-    /* estreito: o painel de permissões cobre o de pessoas, com o ‹ voltar.
-       Aqui ele passa a nascer na borda, então vira gaveta e entra deslizando. */
-    .sd-perms{right:0;width:min(560px,100%);z-index:43;transform:translateX(100%);opacity:1}
+    /* estreito: cada painel cobre o anterior, com o ‹ voltar.
+       Aqui eles passam a nascer na borda, então viram gaveta e entram deslizando. */
+    .sd-perms{right:0;width:min(500px,100%);z-index:43;transform:translateX(100%);opacity:1}
+    .sd-perfil{right:0;width:min(440px,100%);z-index:44;transform:translateX(100%);opacity:1}
   }
 
   #toast{position:fixed;right:22px;bottom:22px;z-index:60;background:var(--card);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:12px;box-shadow:var(--sh-lg);padding:16px 18px;max-width:380px;transform:translateY(14px);opacity:0;pointer-events:none;transition:.18s}
@@ -944,7 +1031,8 @@
   @media (prefers-reduced-motion: reduce){
     *,*::before,*::after{transition-duration:.01ms !important}
     .boot-mark,body.saindo #appView,.anim-cascata>*,
-    .login-wrap,.lg-err.on .cx{animation:none !important}
+    .login-wrap,.lg-err.on .cx,
+    #gridWrap .chip.ok,#gridWrap .chip.warn,#gridWrap .chip.no,#tbody .node.on{animation:none !important}
     /* parado, o rastro viraria um risco solto no canto — melhor sumir e deixar a grade */
     .cometas{display:none}
   }
@@ -1299,7 +1387,9 @@
 <aside class="sd sd-perms" id="sdPerms" role="dialog" aria-modal="true" aria-labelledby="sdPTitulo">
   <div class="sd-top">
     <div class="sd-head">
-      <button class="sd-voltar" id="sdPVoltar" aria-label="Voltar para a lista" title="Voltar">‹</button>
+      <button class="sd-voltar" id="sdPPerfil" aria-label="Abrir perfil e treinamento" title="Perfil e treinamento">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="8" cy="5" r="2.6"/><path d="M3 13.5c0-2.5 2.2-4 5-4s5 1.5 5 4"/></svg>
+      </button>
       <span class="avstack" id="sdPAvatares"></span>
       <div style="flex:1;min-width:0">
         <h3 id="sdPTitulo">–</h3>
@@ -1309,6 +1399,29 @@
     </div>
   </div>
   <div class="sd-body" id="sdPBody"></div>
+</aside>
+
+<!-- Terceiro painel: perfil e treinamento de quem vai receber as telas, sem sair do
+     fluxo. As mesmas funções que desenham a gaveta de Usuários desenham aqui. -->
+<aside class="sd sd-perfil" id="sdPerfil" role="dialog" aria-modal="true" aria-labelledby="spTitulo">
+  <div class="sd-top">
+    <div class="sd-head">
+      <div style="flex:1;min-width:0">
+        <h3 id="spTitulo">–</h3>
+        <div class="sub" id="spSub">–</div>
+      </div>
+      <button class="sd-x" id="spFechar" aria-label="Fechar" title="Fechar">✕</button>
+    </div>
+    <div class="sp-quem hidden" id="spQuem" role="tablist" aria-label="Trocar de pessoa"></div>
+    <div class="dw-tabs" id="spTabs" role="tablist">
+      <div class="dw-tabs-btns" id="spTabsBtns">
+        <button role="tab" data-sptab="perfil" class="on" aria-selected="true">Perfil</button>
+        <button role="tab" data-sptab="treino" aria-selected="false">Treinamento</button>
+      </div>
+      <span class="dw-ind" id="spInd" aria-hidden="true"></span>
+    </div>
+  </div>
+  <div class="dw-body" id="spBody" role="tabpanel"></div>
 </aside>
 
 <!-- ══ MODAIS ══ -->
@@ -1388,6 +1501,12 @@ let CAT = { papeis: [], sistemas: [], permissoes: [] };
 let ESCOPO_OPC = {}; // { COORDENADOR:[...], SUPERVISOR:[...], LIDER:[...], PROJETO:[...], EQUIPE:[...] } — do organograma
 let FOTO_BASE = ""; // URL do PCP que resolve a foto por nome (upload → Unico People)
 let dId = null, dDet = null, selSis = "PCP", dTab = "acessos";
+/* Onde Perfil/Treinamento estão sendo desenhados agora: "dwBody" (gaveta de Usuários)
+   ou "spBody" (painel de Perfil do fluxo Sistemas). São as MESMAS funções de render
+   nos dois lugares — muda só o contêiner e de onde o detalhe é recarregado.
+   Os dois nunca estão preenchidos ao mesmo tempo: quem fecha limpa o seu innerHTML,
+   senão existiriam dois #dPapelSel no documento e el() pegaria o errado. */
+let dwAlvo = "dwBody";
 let offset = 0, limit = 25, total = 0;
 // lembra quais grupos de telas o usuário fechou, para o redesenho não reabrir tudo. chave: "SISTEMA::Grupo"
 const GRUPO_ABERTO = {};
@@ -1523,7 +1642,7 @@ function semHoverAoRolar(no) {
     t = setTimeout(() => no.classList.remove("rolando"), 140);
   }, { passive: true });
 }
-["dwBody", "sdLista", "sdPBody"].forEach((id) => semHoverAoRolar(el(id)));
+["dwBody", "sdLista", "sdPBody", "spBody"].forEach((id) => semHoverAoRolar(el(id)));
 
 /* ══ SELECT (camada própria — o popup nativo é do SO e não aceita CSS) ══
    O <select> original fica no DOM, escondido, e continua sendo a fonte da verdade:
@@ -1771,11 +1890,13 @@ function trapFoco(container, e) {
 }
 document.addEventListener("keydown", (e) => {
   const drawerAberto = el("drawer").classList.contains("show");
+  const sdPerfilAberto = el("sdPerfil").classList.contains("show");
   const sdPermsAberto = el("sdPerms").classList.contains("show");
   const sdAberto = el("sdPessoas").classList.contains("show");
   if (e.key === "Escape") {
     // fecha sempre a camada de cima primeiro
     if (modalAberto) { e.preventDefault(); fecharModal(); }
+    else if (sdPerfilAberto) { e.preventDefault(); fecharSdPerfil(); el("sdPFechar").focus(); }
     else if (sdPermsAberto) { e.preventDefault(); fecharSdPerms(); el("sdFechar").focus(); }
     else if (sdAberto) { e.preventDefault(); fecharSd(); }
     else if (drawerAberto) { e.preventDefault(); fechar(); }
@@ -1783,6 +1904,7 @@ document.addEventListener("keydown", (e) => {
   }
   if (e.key !== "Tab") return;
   if (modalAberto) trapFoco(el(modalAberto.id), e);
+  else if (sdPerfilAberto) trapFoco(el("sdPerfil"), e);
   else if (sdPermsAberto) trapFoco(el("sdPerms"), e);
   else if (sdAberto) trapFoco(el("sdPessoas"), e);
   else if (drawerAberto) trapFoco(el("drawer"), e);
@@ -1937,7 +2059,7 @@ function irParaSecao(s) {
 }
 document.querySelectorAll(".rail-nav button").forEach((b) => b.onclick = () => irParaSecao(b.dataset.sec));
 // a barra depende de medidas reais: reposiciona quando o layout muda
-window.addEventListener("resize", () => { moverRailInd(); moverDwInd(); });
+window.addEventListener("resize", () => { moverRailInd(); moverDwInd(); moverSpInd(); });
 
 // ── Tema claro/escuro ──
 // O <head> já aplicou o tema salvo antes de pintar; aqui só sincronizamos o toggle.
@@ -2212,6 +2334,10 @@ el("dwClose").onclick = fechar; el("scrim").onclick = fechar;
 function fechar() {
   const idAnterior = dId;
   el("drawer").classList.remove("show"); el("scrim").classList.remove("show");
+  // Esvazia o corpo: o Perfil monta ids fixos (#dPapelSel, #dEscTipo…) e o painel de
+  // Perfil do fluxo Sistemas monta os mesmos. Deixar o conteúdo aqui depois de fechar
+  // faria existirem dois de cada, e el() devolveria o desta gaveta — a invisível.
+  el("dwBody").innerHTML = "";
   dId = null;
   atualizarTravaFundo();
   // devolve o foco pra linha que abriu o drawer (a tabela é reconstruída no carregar())
@@ -2227,10 +2353,20 @@ async function abrir(id) {
   if (dId === id) surgir(el("dwBody"));
 }
 async function recarregarDetalhe() {
-  const scroll = el("dwBody").scrollTop; // o redesenho zera o scroll — guardamos e devolvemos
-  try { dDet = await api("/admin/usuarios/" + dId + "/detalhe"); } catch (e) { el("dwBody").innerHTML = '<div class="empty">' + esc(e.message) + '</div>'; return; }
-  renderTopo(); renderTab();
-  el("dwBody").scrollTop = scroll;
+  const corpo = el(dwAlvo);
+  const scroll = corpo.scrollTop; // o redesenho zera o scroll — guardamos e devolvemos
+  try { dDet = await api("/admin/usuarios/" + dId + "/detalhe"); } catch (e) { corpo.innerHTML = '<div class="empty">' + esc(e.message) + '</div>'; return; }
+  if (dwAlvo === "spBody") {
+    // O painel de permissões ao lado lê o MESMO detalhe (SD.det) para saber o estado
+    // de cada tela. Mudar um papel muda as efetivas — sem atualizar os dois, um deles
+    // ficaria mostrando o mundo de antes do clique.
+    SD.det.set(dId, dDet);
+    renderSpTopo(); renderSpTab();
+    if (el("sdPerms").classList.contains("show")) renderSdPermsBody();
+  } else {
+    renderTopo(); renderTab();
+  }
+  corpo.scrollTop = scroll;
 }
 // Em erro também recarrega: desfaz o estado otimista e mostra o que o servidor realmente tem.
 async function mut(method, path, body) {
@@ -2265,6 +2401,10 @@ el("dwTabsBtns").querySelectorAll("[data-tab]").forEach((b) => b.onclick = () =>
   if (dTab === b.dataset.tab) return;
   dTab = b.dataset.tab;
   animarDw = true;
+  // Detalhe ainda no ar: guarda a escolha e sai. O esqueleto continua na tela e
+  // recarregarDetalhe() desenha ESTA aba quando a resposta chegar. Antes disso
+  // renderTopo() estourava em dDet.usuario se o clique viesse antes do fetch.
+  if (!dDet) return;
   renderTopo();
   // O traço precisa começar a andar ANTES do corpo ser reconstruído: montar a lista
   // de acessos ocupa a thread por vários quadros, e a animação só sai do lugar
@@ -2327,13 +2467,66 @@ async function renderLogs() {
     <div class="bc" style="padding-top:6px">${logs.length ? logs.map(linha).join("") : '<div class="hint">Sem registros ainda.</div>'}</div></div>`;
 }
 
+/* ── Contato: copiar num clique e falar no WhatsApp ── */
+const ICO_COPIAR = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><rect x="5.5" y="5.5" width="8" height="8" rx="1.6"/><path d="M10.5 3.2A1.7 1.7 0 0 0 8.9 2H3.7A1.7 1.7 0 0 0 2 3.7v5.2c0 .75.48 1.38 1.2 1.6"/></svg>';
+const ICO_OK = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.2 8.4 6.3 11.5 12.8 4.6"/></svg>';
+const ICO_ZAP = '<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 1.6a6.4 6.4 0 0 0-5.5 9.66L1.6 14.4l3.22-.86A6.4 6.4 0 1 0 8 1.6zm0 1.2a5.2 5.2 0 1 1-2.7 9.65l-.2-.12-1.9.5.51-1.86-.13-.2A5.2 5.2 0 0 1 8 2.8zm-2.4 2.7c-.13 0-.34.05-.52.25-.18.2-.68.66-.68 1.6s.7 1.86.8 1.99c.1.13 1.36 2.13 3.35 2.9 1.65.64 1.99.51 2.35.48.36-.03 1.16-.47 1.32-.93.16-.46.16-.85.12-.93-.05-.08-.18-.13-.38-.23-.2-.1-1.16-.58-1.34-.64-.18-.07-.31-.1-.44.1-.13.19-.5.63-.61.76-.11.13-.23.15-.43.05a5.36 5.36 0 0 1-1.58-.98 5.97 5.97 0 0 1-1.09-1.36c-.11-.2-.01-.3.09-.4.09-.9.2-.23.3-.35.1-.12.13-.2.2-.33.06-.13.03-.25-.02-.35-.05-.1-.44-1.07-.6-1.46-.16-.38-.32-.33-.44-.34h-.38z"/></svg>';
+const ICO_MAIL = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><rect x="1.8" y="3.4" width="12.4" height="9.2" rx="1.6"/><path d="m2.4 4.6 5.06 3.62a1 1 0 0 0 1.08 0L13.6 4.6"/></svg>';
+
+// Só vira link quando o número dá para discar. 10 ou 11 dígitos = DDD + número, então
+// falta o país; 12 ou 13 começando em 55 já vêm completos. Fora disso não dá para
+// adivinhar (ramal, número truncado), e um wa.me errado abre conversa com estranho.
+function zapNumero(tel) {
+  const d = String(tel || "").replace(/\D/g, "");
+  if (d.length === 10 || d.length === 11) return "55" + d;
+  if ((d.length === 12 || d.length === 13) && d.startsWith("55")) return d;
+  return null;
+}
+const btnCopiar = (valor, oque) => !valor ? "" :
+  `<button type="button" class="ct-copiar" data-copiar="${esc(valor)}" title="Copiar ${oque}" aria-label="Copiar ${oque}">${ICO_COPIAR}</button>`;
+
+// Só vira link o que dá para usar de verdade. Um mailto quebrado abre o cliente de
+// e-mail com lixo no destinatário — pior do que texto simples, que ao menos é honesto.
+const ehEmail = (v) => /^[^\s@"'<>]+@[^\s@"'<>]+\.[^\s@"'<>]+$/.test(String(v || ""));
+
+function linhaContato(valor, oque, canal) {
+  if (!valor) return "<dd>—</dd>";
+  let miolo = `<span class="ct-v">${esc(valor)}</span>`;
+  if (canal === "zap") {
+    const n = zapNumero(valor);
+    if (n) miolo = `<a class="ct-link ct-zap" href="https://wa.me/${n}" target="_blank" rel="noopener noreferrer"
+      title="Conversar no WhatsApp">${ICO_ZAP}<span>${esc(valor)}</span></a>`;
+  } else if (canal === "mail" && ehEmail(valor)) {
+    // sem target=_blank: o mailto entrega para o cliente de e-mail e a aba em branco
+    // ficaria órfã na barra do navegador
+    miolo = `<a class="ct-link ct-mail" href="mailto:${esc(encodeURI(valor))}"
+      title="Enviar e-mail">${ICO_MAIL}<span>${esc(valor)}</span></a>`;
+  }
+  return `<dd><div class="ct">${miolo}${btnCopiar(valor, oque)}</div></dd>`;
+}
+
+// Delegação: o bloco de contato é remontado a cada render, e religar handlers um a um
+// a cada vez sairia caro à toa.
+function ligarCopiar(raiz) {
+  raiz.addEventListener("click", async (e) => {
+    const b = e.target.closest("[data-copiar]");
+    if (!b) return;
+    try { await navigator.clipboard.writeText(b.dataset.copiar); }
+    catch { toast("Não consegui copiar. Selecione o texto e use Ctrl+C."); return; }
+    b.innerHTML = ICO_OK; b.classList.add("ok");
+    clearTimeout(b._t);
+    b._t = setTimeout(() => { b.innerHTML = ICO_COPIAR; b.classList.remove("ok"); }, 1400);
+  });
+}
+["dwBody", "spBody"].forEach((id) => ligarCopiar(el(id)));
+
 function renderPerfil() {
   const u = dDet.usuario;
-  el("dwBody").innerHTML = `
+  el(dwAlvo).innerHTML = `
     <div class="block"><div class="bh"><h4>Contato</h4></div><div class="bc">
       <dl class="dl">
-        <dt>Email</dt><dd>${esc(u.EMAIL) || "—"}</dd>
-        <dt>Telefone</dt><dd>${esc(u.TELEFONE_EMPRESARIAL) || "—"}</dd>
+        <dt>Email</dt>${linhaContato(u.EMAIL, "e-mail", "mail")}
+        <dt>Telefone</dt>${linhaContato(u.TELEFONE_EMPRESARIAL, "telefone", "zap")}
         <dt>Matrícula</dt><dd>${esc(u.MATRICULA) || "—"}</dd>
       </dl>
     </div></div>
@@ -2618,12 +2811,12 @@ function renderTreino() {
       ${on && t.DATA_TREINAMENTO ? `<div class="sub2">desde ${esc(String(t.DATA_TREINAMENTO).slice(0,10))}</div>` : ""}</div>
       <button class="switch ${on ? "on" : ""}" role="switch" aria-checked="${on ? "true" : "false"}" aria-label="Treinado em ${esc(s.NOME)}" data-treino="${esc(s.CODIGO)}" data-on="${on ? 1 : 0}"></button></div>`;
   }).join("");
-  el("dwBody").innerHTML = `
+  el(dwAlvo).innerHTML = `
     <div class="block"><div class="bh"><h4>Treinamento por sistema</h4><p>Marca quem já foi treinado, com a data.</p></div>${linhas}</div>
     <div class="block"><div class="bh"><h4>Permissões efetivas</h4><p>O resultado final: papel + liberações − negações.</p></div><div class="bc">
       ${(dDet.efetivas || []).length ? dDet.efetivas.map((c) => `<span class="perm">${esc(c)}</span>`).join("") : '<span class="hint">nenhuma</span>'}
     </div></div>`;
-  el("dwBody").querySelectorAll("[data-treino]").forEach((b) => b.onclick = () => {
+  el(dwAlvo).querySelectorAll("[data-treino]").forEach((b) => b.onclick = () => {
     const novo = b.dataset.on !== "1";
     b.classList.toggle("on", novo); // vira na hora
     b.setAttribute("aria-checked", String(novo));
@@ -3038,18 +3231,18 @@ function abrirSd(codigo) {
   carregarSdPessoas();
 }
 function fecharSd() {
+  fecharSdPerfil();
   fecharSdPerms();
   el("sdPessoas").classList.remove("show");
   el("sdScrim").classList.remove("show");
   SD.sis = null;
   atualizarTravaFundo();
 }
-function fecharSdPerms() { el("sdPerms").classList.remove("show"); SD.alvos = []; }
+function fecharSdPerms() { fecharSdPerfil(); el("sdPerms").classList.remove("show"); SD.alvos = []; }
 
 el("sdFechar").onclick = fecharSd;
 el("sdScrim").onclick = fecharSd;
 el("sdPFechar").onclick = fecharSd;
-el("sdPVoltar").onclick = () => { fecharSdPerms(); el("sdFechar").focus(); };
 
 function sdSincronizarModo() {
   el("sdRodape").classList.toggle("hidden", !SD.multi);
@@ -3140,6 +3333,95 @@ async function abrirSdPerms(ids) {
   renderSdPermsBody();
   surgir(el("sdPBody"));
 }
+
+/* ══ Painel de Perfil / Treinamento (o terceiro, mais à esquerda) ══
+   Não redesenha nada por conta própria: chama renderPerfil()/renderTreino(), as mesmas
+   da gaveta de Usuários, apontando dwAlvo para o corpo daqui. Editar por aqui salva
+   pelo mesmo mut() de sempre — ver recarregarDetalhe(), que devolve o detalhe novo
+   para SD.det e repinta o painel de telas ao lado. */
+const SP = { tab: "perfil" };
+const moverSpInd = () => moverBarra(el("spInd"), el("spTabsBtns").querySelector("button.on"), el("spTabs"), true);
+
+function renderSpTopo() {
+  const u = (dDet || {}).usuario || {};
+  el("spTitulo").textContent = u.NOME || "–";
+  el("spTitulo").title = u.NOME || "";
+  el("spSub").innerHTML = `<span class="mono">${esc(u.LOGIN)}</span> · ${estadoChip(u)} · ${senhaChip(u)}`;
+
+  // A troca de pessoa só existe quando há mais de uma marcada; com uma só, a faixa
+  // seria uma fileira de um item — ruído sem função.
+  const varios = SD.alvos.length > 1;
+  el("spQuem").classList.toggle("hidden", !varios);
+  if (varios) {
+    el("spQuem").innerHTML = SD.alvos.map((id) => {
+      const nome = (SD.pessoas.find((p) => p.ID === id) || {}).NOME
+        || ((SD.det.get(id) || {}).usuario || {}).NOME || "Pessoa";
+      const atual = id === SD.perfilId;
+      return `<button type="button" role="tab" data-quem="${id}" class="${atual ? "on" : ""}"
+        aria-selected="${atual}" title="${esc(nome)}">${avatarMini(nome)}<span>${esc(nome)}</span></button>`;
+    }).join("");
+    el("spQuem").querySelectorAll("[data-quem]").forEach((b) => {
+      b.onclick = () => trocarSpPessoa(Number(b.dataset.quem));
+    });
+  }
+}
+
+function renderSpTab() {
+  dwAlvo = "spBody";
+  if (SP.tab === "treino") renderTreino(); else renderPerfil();
+  modernizarSelects(el("spBody"));
+  el("spTabsBtns").querySelectorAll("[data-sptab]").forEach((b) => {
+    const ativa = b.dataset.sptab === SP.tab;
+    b.classList.toggle("on", ativa);
+    b.setAttribute("aria-selected", String(ativa));
+  });
+  moverSpInd();
+}
+
+async function trocarSpPessoa(id) {
+  if (id === SD.perfilId) return;
+  SD.perfilId = id;
+  dId = id;
+  dwAlvo = "spBody";
+  el("spBody").innerHTML = skTelas(2, 3);
+  renderSpTopo();
+  try { if (!SD.det.has(id)) SD.det.set(id, await api(`/admin/usuarios/${id}/detalhe`)); }
+  catch (e) { el("spBody").innerHTML = `<div class="empty">${esc(e.message)}</div>`; return; }
+  if (SD.perfilId !== id) return; // trocou de novo enquanto carregava
+  dDet = SD.det.get(id);
+  renderSpTopo(); renderSpTab();
+  surgir(el("spBody"));
+}
+
+function abrirSdPerfil() {
+  if (!SD.alvos.length) return;
+  el("sdPerfil").classList.add("show");
+  document.body.classList.add("sp-aberto"); // a media query usa isto para tirar a lista de cena
+  SP.tab = "perfil";
+  SD.perfilId = null;
+  trocarSpPessoa(SD.alvos[0]);
+  el("spFechar").focus();
+}
+
+function fecharSdPerfil() {
+  if (!el("sdPerfil").classList.contains("show")) return;
+  el("sdPerfil").classList.remove("show");
+  document.body.classList.remove("sp-aberto");
+  el("spBody").innerHTML = ""; // mesmo motivo do dwBody: ids fixos não podem duplicar
+  SD.perfilId = null;
+  dwAlvo = "dwBody";
+  dId = null; dDet = null;
+}
+
+el("sdPPerfil").onclick = abrirSdPerfil;
+el("spFechar").onclick = () => { fecharSdPerfil(); el("sdPPerfil").focus(); };
+el("spTabsBtns").querySelectorAll("[data-sptab]").forEach((b) => b.onclick = () => {
+  if (SP.tab === b.dataset.sptab) return;
+  SP.tab = b.dataset.sptab;
+  if (!dDet) return; // mesmo motivo do dwTabsBtns: trocarSpPessoa() desenha ao chegar
+  renderSpTab();
+  cascata(el("spBody"));
+});
 
 // Estado de uma tela entre os alvos: igual para todos, ou MISTO.
 function sdEstado(cod) {
