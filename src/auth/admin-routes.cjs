@@ -451,4 +451,84 @@ router.post("/usuarios/:id/estado", async (req, res) => {
   }
 });
 
+// POST /api/admin/usuarios/:id/contato  { email?, telefone? }
+// A TI corrige o contato aqui quando muda (número novo, e-mail novo). Até agora
+// e-mail/telefone só entravam na criação manual e no onboarding — depois disso não
+// havia por onde mexer, e o dado envelhecia dentro do banco.
+//
+// Gravar aqui é seguro: o sync com dbo.COLABORADORES atualiza nome/matrícula/ativo
+// por CPF e é explícito em NÃO tocar em e-mail/telefone (ver sync-colaboradores.cjs),
+// então o que se escreve aqui sobrevive à próxima volta. É por esse mesmo motivo que
+// NOME e MATRÍCULA ficam de fora: aqueles dois voltariam ao valor do RH em até 6h e a
+// edição pareceria simplesmente não ter salvo.
+//
+// Campo ausente no corpo = não mexe naquela coluna. Campo presente e vazio = apaga
+// (vira NULL). Os dois casos são diferentes de propósito: o console manda só o que a
+// pessoa realmente mudou, e "apagar o telefone" tem de ser possível.
+router.post("/usuarios/:id/contato", async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    if (!Number.isInteger(id) || id <= 0) return res.status(400).json({ erro: "Usuário inválido" });
+    const corpo = req.body || {};
+    const temEmail = Object.prototype.hasOwnProperty.call(corpo, "email");
+    const temTel = Object.prototype.hasOwnProperty.call(corpo, "telefone");
+    if (!temEmail && !temTel) return res.status(400).json({ erro: "Nada para alterar" });
+
+    let email = null;
+    if (temEmail) {
+      email = String(corpo.email ?? "").trim();
+      if (email.length > 255) return res.status(400).json({ erro: "E-mail longo demais (máximo 255 caracteres)" });
+      // Frouxo de propósito: se um e-mail entrega ou não, só o servidor de e-mail sabe.
+      // Aqui o objetivo é barrar o que com certeza não entrega — sem @, sem domínio,
+      // com espaço no meio — e não bancar o juiz de endereço exótico porém válido.
+      if (email && !/^[^\s@<>"']+@[^\s@<>"']+\.[A-Za-z]{2,}$/.test(email))
+        return res.status(400).json({ erro: "E-mail inválido — confira o @ e o domínio" });
+      email = email || null;
+    }
+
+    let tel = null;
+    if (temTel) {
+      const bruto = String(corpo.telefone ?? "").trim();
+      const digitos = bruto.replace(/\D/g, "");
+      // Grava só dígitos: é como POST /usuarios já grava e é o formato de que o console
+      // precisa para montar o link do WhatsApp. Máscara é assunto de exibição.
+      // Exigir 8–13 dígitos não é capricho — é o que impede de salvar como telefone algo
+      // que na verdade era um ramal ou um texto ("4499 ramal 22" perderia o "ramal" ao
+      // virar dígito puro, e o banco passaria a mentir sobre o que está lá).
+      if (bruto && (digitos.length < 8 || digitos.length > 13))
+        return res.status(400).json({ erro: "Telefone deve ter de 8 a 13 dígitos (com DDD)" });
+      tel = digitos || null;
+    }
+
+    const pool = await getPool();
+    const antes = (await pool.request().input("id", sql.Int, id)
+      .query(`SELECT EMAIL, TELEFONE_EMPRESARIAL FROM ${IAM_SCHEMA}.IAM_USUARIOS WHERE ID=@id`)).recordset[0];
+    if (!antes) return res.status(404).json({ erro: "Usuário não encontrado" });
+
+    const sets = [];
+    const rq = pool.request().input("id", sql.Int, id);
+    if (temEmail) { sets.push("EMAIL=@email"); rq.input("email", sql.NVarChar(255), email); }
+    if (temTel) { sets.push("TELEFONE_EMPRESARIAL=@tel"); rq.input("tel", sql.VarChar(20), tel); }
+    await rq.query(`UPDATE ${IAM_SCHEMA}.IAM_USUARIOS
+                       SET ${sets.join(", ")}, ATUALIZADO_EM=SYSUTCDATETIME()
+                     WHERE ID=@id`);
+
+    // Guarda o "de" e o "para". Contato não é dado decorativo: é por ele que a senha
+    // provisória é entregue, então trocar o e-mail de alguém é trocar para onde vai a
+    // chave da conta dela. Quem mudou, quando e de que valor para qual tem de ficar
+    // rastreável — sem isso um desvio de senha viraria um mistério sem trilha.
+    await auditar(pool, {
+      usuarioId: id, acao: "CONTATO_ALTERADO", ator: req.usuario.login,
+      detalhe: {
+        ...(temEmail ? { email: { de: antes.EMAIL || null, para: email } } : {}),
+        ...(temTel ? { telefone: { de: antes.TELEFONE_EMPRESARIAL || null, para: tel } } : {}),
+      },
+    });
+    res.json({ ok: true, ...(temEmail ? { email } : {}), ...(temTel ? { telefone: tel } : {}) });
+  } catch (e) {
+    console.error("[contato]", e.message);
+    res.status(500).json({ erro: "Falha ao salvar contato" });
+  }
+});
+
 module.exports = router;

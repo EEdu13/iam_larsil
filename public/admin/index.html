@@ -742,6 +742,30 @@
   .ct-mail{color:var(--mail)}
   .ct-mail:hover{background:var(--mail-t);color:var(--mail-d)}
 
+  /* ── Contato em edição ── */
+  .ct-topo{display:flex;justify-content:space-between;align-items:center;gap:10px}
+  /* O lápis segue a mesma regra do botão de copiar: em repouso este bloco é para LER
+     — o contato é o que se vem buscar aqui — e um botão aceso ali sugeriria que editar
+     é a ação principal. Aparece com o ponteiro no bloco; teclado e toque não têm hover,
+     então nesses dois fica sempre visível ou o botão seria inalcançável. */
+  .blk-edit{opacity:0;transition:opacity .14s}
+  .block:hover .blk-edit,.blk-edit:focus-visible{opacity:1}
+  @media(hover:none){.blk-edit{opacity:1}}
+  .blk-edit svg{width:12px;height:12px}
+  .ct-form{display:grid;gap:12px}
+  .ct-campo{display:grid;gap:5px}
+  /* --ink-2, não --ink-3 como o <dt> ao lado: no tema escuro o ink-3 dá 4,30:1 sobre o
+     card e rótulo de formulário é texto que se PRECISA ler para preencher o campo, não
+     legenda de apoio. Com ink-2 sobe para 7,7:1 e passa AA nos dois temas. */
+  .ct-campo label{font-size:12px;font-weight:600;color:var(--ink-2)}
+  .ct-campo .inp{font-size:13.5px;padding:8px 10px}
+  /* O campo recusado fica marcado junto com a mensagem: com dois campos no formulário,
+     só a frase embaixo não diz QUAL dos dois o servidor rejeitou. */
+  .ct-campo.ruim .inp{border-color:var(--danger)}
+  .ct-campo.ruim .inp:focus{border-color:var(--danger);box-shadow:0 0 0 3px var(--danger-t)}
+  .ct-msg{margin:0;font-size:12px;font-weight:600;color:var(--danger);line-height:1.45}
+  .ct-acoes{display:flex;gap:8px;align-items:center}
+
   .tag{display:inline-flex;align-items:center;gap:7px;background:var(--hov);border:1px solid var(--line);border-radius:7px;padding:5px 7px 5px 11px;font-size:12.5px;font-weight:600}
   .tag.esc{background:var(--tint);border-color:var(--brd-ok);color:var(--accent-d)}
   .tag button{background:transparent;border:0;color:var(--ink-3);font-size:14px;line-height:1;padding:0 2px}
@@ -2339,6 +2363,9 @@ function fechar() {
   // faria existirem dois de cada, e el() devolveria o desta gaveta — a invisível.
   el("dwBody").innerHTML = "";
   dId = null;
+  // Fechar é desistir: sem isto, reabrir a MESMA pessoa cairia direto no formulário com
+  // o rascunho de antes (o rascunho é amarrado ao id, e o id volta a ser o mesmo).
+  ctEdit = null;
   atualizarTravaFundo();
   // devolve o foco pra linha que abriu o drawer (a tabela é reconstruída no carregar())
   carregar().then(() => { const tr = el("tbody").querySelector(`tr[data-uid="${idAnterior}"]`); if (tr) tr.focus(); });
@@ -2452,7 +2479,11 @@ async function renderLogs() {
     let d = {}; try { d = a.DETALHE ? JSON.parse(a.DETALHE) : {}; } catch {}
     const alvoDaAcao = String(a.ATOR || "").toLowerCase() !== meuLogin;
     const quando = new Date(a.CRIADO_EM);
-    const compl = d.nome || d.sistema || (d.cod ? nomeTela(d.cod) : "") || (d.tipo && d.valor ? d.tipo + " · " + d.valor : "");
+    // CONTATO_ALTERADO guarda {de,para} por campo — os outros guardam valores rasos,
+    // então sem este caso a linha ficaria só com o rótulo, sem dizer o que mudou.
+    const contato = a.ACAO === "CONTATO_ALTERADO"
+      ? [d.email && "e-mail", d.telefone && "telefone"].filter(Boolean).join(" e ") : "";
+    const compl = contato || d.nome || d.sistema || (d.cod ? nomeTela(d.cod) : "") || (d.tipo && d.valor ? d.tipo + " · " + d.valor : "");
     return `<div class="logrow">
       <span class="node ${ACAO_TOM[a.ACAO] === "no" ? "off" : "on"}"></span>
       <div class="lbl">
@@ -2472,6 +2503,30 @@ const ICO_COPIAR = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" s
 const ICO_OK = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.2 8.4 6.3 11.5 12.8 4.6"/></svg>';
 const ICO_ZAP = '<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 1.6a6.4 6.4 0 0 0-5.5 9.66L1.6 14.4l3.22-.86A6.4 6.4 0 1 0 8 1.6zm0 1.2a5.2 5.2 0 1 1-2.7 9.65l-.2-.12-1.9.5.51-1.86-.13-.2A5.2 5.2 0 0 1 8 2.8zm-2.4 2.7c-.13 0-.34.05-.52.25-.18.2-.68.66-.68 1.6s.7 1.86.8 1.99c.1.13 1.36 2.13 3.35 2.9 1.65.64 1.99.51 2.35.48.36-.03 1.16-.47 1.32-.93.16-.46.16-.85.12-.93-.05-.08-.18-.13-.38-.23-.2-.1-1.16-.58-1.34-.64-.18-.07-.31-.1-.44.1-.13.19-.5.63-.61.76-.11.13-.23.15-.43.05a5.36 5.36 0 0 1-1.58-.98 5.97 5.97 0 0 1-1.09-1.36c-.11-.2-.01-.3.09-.4.09-.9.2-.23.3-.35.1-.12.13-.2.2-.33.06-.13.03-.25-.02-.35-.05-.1-.44-1.07-.6-1.46-.16-.38-.32-.33-.44-.34h-.38z"/></svg>';
 const ICO_MAIL = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><rect x="1.8" y="3.4" width="12.4" height="9.2" rx="1.6"/><path d="m2.4 4.6 5.06 3.62a1 1 0 0 0 1.08 0L13.6 4.6"/></svg>';
+const ICO_LAPIS = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11.1 2.5a1.55 1.55 0 0 1 2.4 1.95L6.2 11.75l-3 .95.95-3 6.95-7.2z"/><path d="M9.9 3.7l2.4 2.4"/></svg>';
+
+// Máscara de telefone — só exibição e digitação. O que trafega e o que fica gravado é
+// dígito puro (ver POST /usuarios/:id/contato). Aceita 13 dígitos porque número já com
+// país (55 + DDD + 9 dígitos) é o que chega de quem digitou o +55 na mão.
+function mascaraTel(v) {
+  let d = String(v ?? "").replace(/\D/g, "").slice(0, 13);
+  let pais = "";
+  if (d.length > 11 && d.startsWith("55")) { pais = "+55 "; d = d.slice(2); }
+  if (d.length <= 2) return pais + d;
+  if (d.length <= 6) return `${pais}(${d.slice(0, 2)}) ${d.slice(2)}`;
+  if (d.length <= 10) return `${pais}(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`;
+  return `${pais}(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
+}
+// Formata para leitura SÓ quando o valor gravado é de fato um telefone em dígitos. O
+// onboarding gravava o telefone como a pessoa digitou (texto livre, 20 caracteres), então
+// pode haver "4499 ramal 22" no banco: passar aquilo pela máscara jogaria fora tudo que
+// não é dígito e a tela mentiria sobre o que está gravado. Quando não dá para formatar
+// sem perder informação, mostra exatamente o que veio.
+function telBonito(v) {
+  const s = String(v ?? "").trim();
+  const d = s.replace(/\D/g, "");
+  return /^[\d\s().+-]*$/.test(s) && d.length >= 10 && d.length <= 13 ? mascaraTel(d) : s;
+}
 
 // Só vira link quando o número dá para discar. 10 ou 11 dígitos = DDD + número, então
 // falta o país; 12 ou 13 começando em 55 já vêm completos. Fora disso não dá para
@@ -2491,18 +2546,23 @@ const ehEmail = (v) => /^[^\s@"'<>]+@[^\s@"'<>]+\.[^\s@"'<>]+$/.test(String(v ||
 
 function linhaContato(valor, oque, canal) {
   if (!valor) return "<dd>—</dd>";
-  let miolo = `<span class="ct-v">${esc(valor)}</span>`;
+  // O telefone é guardado em dígitos; quem lê a tela lê número de telefone. O link do
+  // WhatsApp continua sendo montado do valor bruto — a máscara não chega perto dele.
+  const texto = canal === "zap" ? telBonito(valor) : String(valor);
+  let miolo = `<span class="ct-v">${esc(texto)}</span>`;
   if (canal === "zap") {
     const n = zapNumero(valor);
     if (n) miolo = `<a class="ct-link ct-zap" href="https://wa.me/${n}" target="_blank" rel="noopener noreferrer"
-      title="Conversar no WhatsApp">${ICO_ZAP}<span>${esc(valor)}</span></a>`;
+      title="Conversar no WhatsApp">${ICO_ZAP}<span>${esc(texto)}</span></a>`;
   } else if (canal === "mail" && ehEmail(valor)) {
     // sem target=_blank: o mailto entrega para o cliente de e-mail e a aba em branco
     // ficaria órfã na barra do navegador
     miolo = `<a class="ct-link ct-mail" href="mailto:${esc(encodeURI(valor))}"
-      title="Enviar e-mail">${ICO_MAIL}<span>${esc(valor)}</span></a>`;
+      title="Enviar e-mail">${ICO_MAIL}<span>${esc(texto)}</span></a>`;
   }
-  return `<dd><div class="ct">${miolo}${btnCopiar(valor, oque)}</div></dd>`;
+  // Copia o que está na tela, não o que está no banco: quem clica aqui vai colar num
+  // WhatsApp ou num e-mail, e espera receber o número do jeito que acabou de ler.
+  return `<dd><div class="ct">${miolo}${btnCopiar(texto, oque)}</div></dd>`;
 }
 
 // Delegação: o bloco de contato é remontado a cada render, e religar handlers um a um
@@ -2520,16 +2580,186 @@ function ligarCopiar(raiz) {
 }
 ["dwBody", "spBody"].forEach((id) => ligarCopiar(el(id)));
 
-function renderPerfil() {
+/* ══ Editar contato ══
+   Rascunho da edição, amarrado ao id da pessoa. Guardar o rascunho fora do DOM é o que
+   permite que um mut() vizinho (adicionar papel, mexer no escopo) redesenhe o Perfil sem
+   apagar o que está sendo digitado. E amarrar ao id é o que evita o rascunho vazar para
+   outra pessoa — o painel novo do fluxo de liberação troca de pessoa sem fechar nada. */
+let ctEdit = null;
+const ctEditando = () => !!ctEdit && ctEdit.id === dId;
+
+// Põe o cursor depois do n-ésimo dígito e pula o separador que vem grudado nele. Sem o
+// pulo, o próximo dígito digitado entraria antes do ") " e a máscara o empurraria de
+// volta — o cursor parece andar para trás a cada tecla.
+function caretNoDigito(inp, n) {
+  let i = 0, vistos = 0;
+  while (i < inp.value.length && vistos < n) { if (/\d/.test(inp.value[i])) vistos++; i++; }
+  while (i < inp.value.length && !/\d/.test(inp.value[i])) i++;
+  inp.setSelectionRange(i, i);
+}
+// Reaplica a máscara mantendo o cursor no mesmo dígito. Contar dígitos (e não caracteres)
+// é o que faz o cursor sobreviver à entrada e à saída de "(", ")" e "-".
+// Efeito esperado, não bug: apagar um dígito de um celular deixa 10 dígitos, e 10 dígitos
+// é a forma de fixo — o hífen anda uma casa ((44) 99000-009 vira (44) 9900-0009). Nenhum
+// dígito se move, só o separador; digitar o dígito de volta refaz o formato de celular.
+function mascararNoLugar(inp) {
+  const n = inp.value.slice(0, inp.selectionStart).replace(/\D/g, "").length;
+  inp.value = mascaraTel(inp.value);
+  caretNoDigito(inp, n);
+}
+
+function htmlContato() {
   const u = dDet.usuario;
-  el(dwAlvo).innerHTML = `
-    <div class="block"><div class="bh"><h4>Contato</h4></div><div class="bc">
+  const leitura = `
+    <div class="bh"><div class="ct-topo"><h4>Contato</h4>
+      <button type="button" class="btn sm ghost blk-edit" id="ctEditar"
+        title="Editar e-mail e telefone">${ICO_LAPIS}Editar</button></div></div>
+    <div class="bc">
       <dl class="dl">
         <dt>Email</dt>${linhaContato(u.EMAIL, "e-mail", "mail")}
         <dt>Telefone</dt>${linhaContato(u.TELEFONE_EMPRESARIAL, "telefone", "zap")}
         <dt>Matrícula</dt><dd>${esc(u.MATRICULA) || "—"}</dd>
       </dl>
-    </div></div>
+    </div>`;
+  const edicao = `
+    <div class="bh"><h4>Contato</h4>
+      <p>Nome, CPF e matrícula vêm do RH e são reescritos pela sincronização — só e-mail
+         e telefone se editam aqui. Deixar um campo vazio apaga o dado.</p></div>
+    <div class="bc"><div class="ct-form">
+      <div class="ct-campo" id="ctcEmail">
+        <label for="ctEmail">E-mail</label>
+        <!-- type=text, não type=email: num input de e-mail o Chrome recusa
+             setSelectionRange/selectionStart (InvalidStateError), e é disso que a
+             reposição de cursor depende. inputmode já entrega o teclado com @ no
+             celular, e a validação aqui é a nossa, com mensagem em português. -->
+        <input class="inp" id="ctEmail" type="text" inputmode="email" autocomplete="off"
+          spellcheck="false" maxlength="255" placeholder="nome.sobrenome@larsil.com.br"
+          value="${esc((ctEdit || {}).email)}">
+      </div>
+      <div class="ct-campo" id="ctcTel">
+        <label for="ctTel">Telefone</label>
+        <input class="inp" id="ctTel" type="tel" inputmode="tel" autocomplete="off"
+          maxlength="20" placeholder="(44) 99000-0091" value="${esc((ctEdit || {}).tel)}">
+      </div>
+      <p class="ct-msg hidden" id="ctMsg" role="alert"></p>
+      <div class="ct-acoes">
+        <button type="button" class="btn pri sm" id="ctSalvar">Salvar</button>
+        <button type="button" class="btn sm ghost" id="ctCancelar">Cancelar</button>
+      </div>
+    </div></div>`;
+  // O id do bloco fica fora do if: é por ele que pintarContato() encontra o que trocar,
+  // e um id declarado duas vezes no arquivo é exatamente o tipo de coisa que o checkup
+  // reclama — com razão, porque um dia um dos dois deixa de acompanhar o outro.
+  return `<div class="block" id="blkContato">${ctEditando() ? edicao : leitura}</div>`;
+}
+
+// Repinta SÓ o bloco de contato. Chamar renderPerfil() inteiro aqui remontaria os selects
+// de papel e de escopo sem passar pelo modernizarSelects() (quem chama aquele é o
+// renderTab), e os dois voltariam a ser <select> nativo no meio da gaveta.
+function pintarContato() {
+  const bloco = el(dwAlvo).querySelector("#blkContato");
+  if (!bloco) return;
+  bloco.outerHTML = htmlContato();
+  wireContato();
+}
+
+function wireContato() {
+  const raiz = el(dwAlvo);
+  if (!ctEditando()) {
+    const b = raiz.querySelector("#ctEditar");
+    if (b) b.onclick = () => {
+      const u = dDet.usuario;
+      // Entra com o telefone já mascarado: o campo é o mesmo texto que estava sendo lido
+      // um instante antes, e não uma tira de dígitos que a pessoa precisa reconhecer.
+      ctEdit = { id: dId, email: u.EMAIL || "", tel: telBonito(u.TELEFONE_EMPRESARIAL) };
+      pintarContato();
+      const i = el(dwAlvo).querySelector("#ctEmail");
+      if (i) { i.focus(); i.select(); }
+    };
+    return;
+  }
+
+  const email = raiz.querySelector("#ctEmail"), tel = raiz.querySelector("#ctTel");
+  const msg = raiz.querySelector("#ctMsg");
+  const marcar = (campo) => {
+    raiz.querySelector("#ctcEmail").classList.toggle("ruim", campo === "email");
+    raiz.querySelector("#ctcTel").classList.toggle("ruim", campo === "tel");
+  };
+  const limpar = () => { msg.classList.add("hidden"); marcar(null); };
+  const errar = (campo, texto) => {
+    marcar(campo); msg.textContent = texto; msg.classList.remove("hidden");
+    if (campo === "email") email.focus(); else if (campo === "tel") tel.focus();
+  };
+
+  const cancelar = () => {
+    ctEdit = null; pintarContato();
+    const b = el(dwAlvo).querySelector("#ctEditar");
+    if (b) b.focus(); // o lápis só existe no modo leitura, então é preciso buscá-lo de novo
+  };
+
+  const salvar = async () => {
+    const u = dDet.usuario;
+    const e1 = email.value.trim(), t1 = tel.value.trim();
+    const dig = t1.replace(/\D/g, "");
+    if (e1 && !ehEmail(e1)) return errar("email", "E-mail inválido — confira o @ e o domínio.");
+    if (t1 && (dig.length < 8 || dig.length > 13)) return errar("tel", "Telefone incompleto — informe DDD + número.");
+    // Manda só o que realmente mudou: campo ausente no corpo é "não mexe nessa coluna".
+    // Salvar sem mudança nenhuma não vale uma ida ao banco nem uma linha na auditoria.
+    const corpo = {};
+    if (e1 !== String(u.EMAIL || "").trim()) corpo.email = e1;
+    if (dig !== String(u.TELEFONE_EMPRESARIAL || "").replace(/\D/g, "")) corpo.telefone = dig;
+    if (!Object.keys(corpo).length) return cancelar();
+
+    const b = raiz.querySelector("#ctSalvar");
+    carregando(b);
+    try { await api(`/admin/usuarios/${dId}/contato`, { method: "POST", body: JSON.stringify(corpo) }); }
+    catch (ex) {
+      // Falhou: o formulário FICA, com o texto digitado. Recarregar aqui (como o mut()
+      // faz) jogaria fora o que a pessoa escreveu e ela teria de digitar tudo de novo
+      // só para descobrir se o erro era da rede ou do valor.
+      b.classList.remove("loading"); b.disabled = false;
+      errar(/mail/i.test(ex.message) ? "email" : /telefone/i.test(ex.message) ? "tel" : null, ex.message);
+      return;
+    }
+    ctEdit = null;
+    toast("Contato atualizado.");
+    await recarregarDetalhe(); // repinta em modo leitura, já com o que o servidor gravou
+  };
+
+  email.oninput = () => { ctEdit.email = email.value; limpar(); };
+  tel.oninput = () => { mascararNoLugar(tel); ctEdit.tel = tel.value; limpar(); };
+  const teclas = (e, eu) => {
+    if (e.key === "Enter") { e.preventDefault(); salvar(); }
+    // stopPropagation porque o Escape global fecha a gaveta/painel inteiro: sem isto,
+    // desistir da edição levava a pessoa embora da tela junto.
+    else if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); cancelar(); }
+    else if (e.key === "Backspace" && eu === tel) apagarPeloSeparador(e);
+  };
+  // Backspace em cima de "(", ")", " " ou "-" não apagaria nada: a máscara recoloca o
+  // separador e o cursor volta ao mesmo lugar — o campo parece travado. Apaga então o
+  // dígito que vem antes do separador, que é o que a pessoa quis apagar.
+  const apagarPeloSeparador = (e) => {
+    const p = tel.selectionStart;
+    if (p !== tel.selectionEnd || p === 0 || /\d/.test(tel.value[p - 1])) return;
+    let i = p;
+    while (i > 0 && !/\d/.test(tel.value[i - 1])) i--;
+    if (i === 0) return;
+    e.preventDefault();
+    const antes = tel.value.slice(0, i).replace(/\D/g, "");
+    tel.value = mascaraTel(antes.slice(0, -1) + tel.value.slice(p).replace(/\D/g, ""));
+    ctEdit.tel = tel.value;
+    caretNoDigito(tel, antes.length - 1);
+    limpar();
+  };
+  email.onkeydown = (e) => teclas(e, email);
+  tel.onkeydown = (e) => teclas(e, tel);
+  raiz.querySelector("#ctSalvar").onclick = salvar;
+  raiz.querySelector("#ctCancelar").onclick = cancelar;
+}
+
+function renderPerfil() {
+  el(dwAlvo).innerHTML = `
+    ${htmlContato()}
 
     <div class="block"><div class="bh"><h4>Papéis</h4><p>O cargo-molde. A pessoa herda tudo que o papel concede.</p></div><div class="bc">
       <div class="row" id="dPapeis"></div>
@@ -2576,6 +2806,7 @@ function renderPerfil() {
   };
   el("dEscTipo").onchange = atualizaOpc; atualizaOpc();
 
+  wireContato();
   el("dPapelAdd").onclick = (e) => { carregando(e.currentTarget); mut("POST", `/admin/usuarios/${dId}/papeis`, { papel_id: Number(el("dPapelSel").value) }); };
   el("dEscAdd").onclick = (e) => { carregando(e.currentTarget); mut("POST", `/admin/usuarios/${dId}/escopo`, { tipo: el("dEscTipo").value, valor: el("dEscValor").value }); };
   el("dPapeis").querySelectorAll("[data-delp]").forEach((b) => b.onclick = () => { b.textContent = "…"; mut("DELETE", `/admin/usuarios/${dId}/papeis/${b.dataset.delp}`); });
@@ -2869,7 +3100,7 @@ const ACAO_ROTULO = {
   EXCECAO_DEFINIDA: "Tela liberada/negada", EXCECAO_REMOVIDA: "Tela voltou a herdar",
   EXCECOES_LOTE: "Telas em lote", TREINAMENTO_DEFINIDO: "Treinamento",
   ACESSO_SOLICITADO: "Acesso solicitado", SYNC_MANUAL: "Sincronização com o RH",
-  REGISTRY_SYNC: "Auto-registro de sistema",
+  REGISTRY_SYNC: "Auto-registro de sistema", CONTATO_ALTERADO: "Contato alterado",
 };
 const ACAO_TOM = {
   ACESSO_SISTEMA: "ok",
@@ -2878,6 +3109,9 @@ const ACAO_TOM = {
   LOGIN_BLOQUEADO_INATIVO: "no", DESATIVADO: "no", PAPEL_REMOVIDO: "no", ESCOPO_REMOVIDO: "no", EXCECAO_REMOVIDA: "no",
   SENHA_PROVISORIA_GERADA: "warn", SENHA_TROCADA: "warn", ACESSO_SOLICITADO: "warn",
   ESCOPO_TRANSFERIDO: "warn", ESCOPO_DESTRAVADO: "warn", EXCECAO_DEFINIDA: "warn",
+  // warn, não ok: o e-mail é por onde a senha provisória é entregue, então trocar o
+  // contato de alguém é trocar para onde vai a chave da conta dela. Merece o olho.
+  CONTATO_ALTERADO: "warn",
 };
 const rotuloAcao = (a) => ACAO_ROTULO[a] || a.replace(/_/g, " ").toLowerCase().replace(/^./, (c) => c.toUpperCase());
 const nomePapel = (id) => (CAT.papeis.find((p) => p.ID === Number(id)) || {}).NOME || ("papel #" + id);
@@ -2905,6 +3139,13 @@ function resumoAud(r) {
     case "REGISTRY_SYNC": return sis(d.sistema) + `${esc(d.enviadas)} permissão(ões)${d.removidas ? ", " + esc(d.removidas) + " removida(s)" : ""}`;
     case "USUARIO_CRIADO_MANUAL": return `login <b>${esc(d.login)}</b>`;
     case "ONBOARDING_CONCLUIDO": return [d.telefone ? "telefone" : null, d.email ? "e-mail" : null].filter(Boolean).join(" e ") || "sem contato informado";
+    // Mostra o valor NOVO na coluna de resumo; o "de" fica no detalhe da linha, que é
+    // onde se vai olhar quando a pergunta for "para onde isso aponta hoje e desde quando".
+    case "CONTATO_ALTERADO": {
+      const alvo = (c) => `<b>${c.para ? esc(c.para) : "(apagado)"}</b>`;
+      return [d.email && "e-mail → " + alvo(d.email), d.telefone && "telefone → " + alvo(d.telefone)]
+        .filter(Boolean).join(" · ");
+    }
     default: return Object.entries(d).map(([k, v]) => `${esc(k)}: <b>${esc(typeof v === "object" ? JSON.stringify(v) : v)}</b>`).join(" · ");
   }
 }
@@ -3411,6 +3652,7 @@ function fecharSdPerfil() {
   SD.perfilId = null;
   dwAlvo = "dwBody";
   dId = null; dDet = null;
+  ctEdit = null; // mesmo motivo do fechar(): rascunho não sobrevive ao fechamento
 }
 
 el("sdPPerfil").onclick = abrirSdPerfil;
