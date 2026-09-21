@@ -65,6 +65,9 @@ router.get("/catalogo", async (_req, res) => {
 
 // Opções de escopo — coordenadores/supervisores/líderes/projetos/equipes existentes no ORGANOGRAMA.
 // (a TI escolhe a âncora do escopo a partir daqui, em vez de digitar à mão)
+// LINHAS mantém a hierarquia de cada linha junta (coordenador, supervisor, líder, equipe, projeto).
+// As listas soltas perdem esse vínculo, e é dele que o console tira "202AC - <líder>" e
+// "700 - <supervisor>" — um projeto com dois supervisores aparece duas vezes.
 router.get("/escopo-opcoes", async (_req, res) => {
   try {
     const pool = await getPool();
@@ -74,9 +77,15 @@ router.get("/escopo-opcoes", async (_req, res) => {
       SELECT DISTINCT LTRIM(RTRIM(LIDER)) v FROM dbo.ORGANOGRAMA WHERE LIDER IS NOT NULL AND LTRIM(RTRIM(LIDER))<>'' ORDER BY v;
       SELECT DISTINCT LTRIM(RTRIM(PROJETO)) v FROM dbo.ORGANOGRAMA WHERE PROJETO IS NOT NULL AND LTRIM(RTRIM(PROJETO))<>'' ORDER BY v;
       SELECT DISTINCT LTRIM(RTRIM(EQUIPE)) v FROM dbo.ORGANOGRAMA WHERE EQUIPE IS NOT NULL AND LTRIM(RTRIM(EQUIPE))<>'' ORDER BY v;
+      SELECT DISTINCT
+             NULLIF(LTRIM(RTRIM(COORDENADOR)),'') COORDENADOR, NULLIF(LTRIM(RTRIM(SUPERVISOR)),'') SUPERVISOR,
+             NULLIF(LTRIM(RTRIM(LIDER)),'') LIDER, NULLIF(LTRIM(RTRIM(EQUIPE)),'') EQUIPE,
+             NULLIF(LTRIM(RTRIM(PROJETO)),'') PROJETO
+        FROM dbo.ORGANOGRAMA
+       WHERE NULLIF(LTRIM(RTRIM(PROJETO)),'') IS NOT NULL OR NULLIF(LTRIM(RTRIM(EQUIPE)),'') IS NOT NULL;
     `);
     const m = (i) => r.recordsets[i].map((x) => x.v).filter(Boolean);
-    res.json({ COORDENADOR: m(0), SUPERVISOR: m(1), LIDER: m(2), PROJETO: m(3), EQUIPE: m(4) });
+    res.json({ COORDENADOR: m(0), SUPERVISOR: m(1), LIDER: m(2), PROJETO: m(3), EQUIPE: m(4), LINHAS: r.recordsets[5] });
   } catch (e) { console.error("[escopo-opcoes]", e.message); res.status(500).json({ erro: "Falha nas opções de escopo" }); }
 });
 

@@ -774,6 +774,92 @@
   .addrow .inp{width:auto;flex:1;min-width:120px;padding:8px 10px}
   .addrow select.inp{flex:0 0 auto}
 
+  /* ══ ESCOPO ══
+     Tudo com prefixo ep-: nome curto em CSS global já colidiu uma vez (ver .sel-opt). */
+  .tag .cod{font-family:var(--mono);font-weight:700}
+  .tag .nm2{font-weight:500;opacity:.85}
+  /* valor que não está no organograma: gravado, mas o filtro dos sistemas não acha nada */
+  .tag.fora{background:var(--amber-t);border-color:var(--brd-warn);color:var(--amber)}
+  .ep-aviso{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;margin-bottom:12px;border-radius:9px;
+    background:var(--amber-t);border:1px solid var(--brd-warn);color:var(--amber);font-size:12.5px;line-height:1.5}
+  .ep-aviso>svg{width:15px;height:15px;flex-shrink:0;margin-top:2px}
+  .ep-aviso>div{flex:1;min-width:0}
+  .ep-aviso .btn{flex-shrink:0;align-self:center}
+  /* com GLOBAL ativo o resto não filtra nada — apagar é dizer isso sem esconder o dado */
+  .ep-inerte{opacity:.45;transition:opacity .16s}
+  .ep-inerte:hover,.ep-inerte:focus-within{opacity:.8}
+  .ep-secao{margin:4px 0 12px}
+  .ep-secao-h{font-size:12px;font-weight:600;color:var(--ink-2);margin-bottom:6px}
+  .ep-grupo{margin-bottom:9px}
+  .ep-grupo-h{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;font-size:11.5px;color:var(--ink-3);margin-bottom:5px}
+  .ep-grupo-h b{font-family:var(--mono);color:var(--ink-2)}
+  .ep-link{border:0;background:transparent;padding:0;color:var(--accent-d);font-size:11.5px;font-weight:600;
+    text-decoration:underline;text-underline-offset:2px}
+  .ep-link:hover{color:var(--ink)}
+  .ep-abrir{margin-top:4px}
+  .ep-abrir svg{width:13px;height:13px}
+  .ep-nota{display:flex;align-items:flex-start;gap:7px;margin-top:14px;padding-top:11px;border-top:1px solid var(--line-2);
+    font-size:11.5px;line-height:1.5;color:var(--ink-3)}
+  .ep-nota svg{width:13px;height:13px;flex-shrink:0;margin-top:2px}
+
+  /* ── o seletor ──
+     Inline, não popover: dentro da gaveta um position:fixed depende de nenhum ancestral
+     ter transform (ver .sel-pop), e aqui a lista é grande demais para caber num popup. */
+  .ep{margin-top:12px;border:1px solid var(--line);border-radius:12px;background:var(--card-2);overflow:hidden}
+  /* quebra em vez de rolar: no painel de Perfil (440px) as quatro não cabem numa linha,
+     e uma aba escondida atrás de rolagem lateral é uma aba que ninguém acha */
+  .ep-abas{display:flex;flex-wrap:wrap;gap:4px;padding:8px;border-bottom:1px solid var(--line-2)}
+  .ep-aba{display:inline-flex;align-items:center;gap:6px;flex-shrink:0;border:1px solid transparent;background:transparent;
+    padding:6px 12px;border-radius:999px;font-size:12.5px;font-weight:600;color:var(--ink-2);
+    transition:background-color .14s,border-color .14s,color .14s}
+  .ep-aba:hover{background:var(--hov);color:var(--ink)}
+  .ep-aba[aria-selected="true"]{background:var(--card);border-color:var(--brd-ok);color:var(--accent-d);box-shadow:var(--sh)}
+  .ep-aba .q{font-size:11px;font-weight:700;color:var(--ink-3)}
+  .ep-aba[aria-selected="true"] .q{color:var(--accent-d)}
+  /* quantos desta aba já estão marcados: some quando zero */
+  .ep-aba .mk{min-width:17px;height:17px;padding:0 5px;border-radius:999px;background:var(--accent);color:#fff;
+    font-size:10.5px;font-weight:700;display:inline-grid;place-items:center}
+  .ep-busca{position:relative;padding:10px 10px 4px}
+  .ep-busca svg{position:absolute;left:22px;top:calc(50% + 3px);transform:translateY(-50%);color:var(--ink-3);pointer-events:none}
+  .ep-busca .inp{padding:8px 10px 8px 34px;font-size:13px}
+  .ep-lista{max-height:min(300px,44vh);overflow:auto;overscroll-behavior:contain;padding:4px 6px 8px}
+  .ep-sep{display:flex;align-items:center;gap:8px;padding:10px 9px 4px;font-size:11px;font-weight:700;color:var(--ink-3)}
+  .ep-sep b{font-family:var(--mono);color:var(--ink-2)}
+  .ep-sep .ep-link{margin-left:auto;white-space:nowrap}
+  .ep-item{position:relative;display:flex;align-items:flex-start;gap:10px;padding:8px 9px;border-radius:8px;cursor:pointer;
+    transition:background-color .1s}
+  .ep-item:hover{background:var(--hov)}
+  .ep-item.on{background:var(--tint)}
+  .ep-item.on:hover{background:var(--tint)}
+  /* a caixa nativa fica no DOM (teclado, leitor de tela, Espaço) e a desenhada por cima */
+  .ep-item input{position:absolute;opacity:0;width:1px;height:1px;margin:0;pointer-events:none}
+  .ep-ck{width:17px;height:17px;flex-shrink:0;margin-top:1px;border-radius:5px;border:1.5px solid var(--mut-2);
+    background:var(--card);display:grid;place-items:center;transition:background-color .12s,border-color .12s}
+  .ep-ck svg{width:11px;height:11px;color:#fff;opacity:0;transition:opacity .12s}
+  .ep-item input:checked+.ep-ck{background:var(--accent);border-color:var(--accent)}
+  .ep-item input:checked+.ep-ck svg{opacity:1}
+  .ep-item input:focus-visible+.ep-ck{outline:2px solid var(--accent-d);outline-offset:2px}
+  .ep-item.tem{cursor:default}
+  .ep-item.tem:hover{background:transparent}
+  .ep-item.tem .ep-ck{background:var(--mut);border-color:var(--mut)}
+  .ep-item.tem .ep-ck svg{opacity:1}
+  .ep-item.off{cursor:not-allowed;opacity:.55}
+  .ep-item.off:hover{background:transparent}
+  .ep-txt{flex:1;min-width:0}
+  .ep-t{display:block;font-size:13px;line-height:1.35;color:var(--ink);overflow-wrap:anywhere}
+  .ep-t .cod{font-family:var(--mono);font-weight:700}
+  .ep-m{display:block;font-size:11.5px;color:var(--ink-3);margin-top:2px;overflow-wrap:anywhere}
+  .ep-m.cob{color:var(--amber)}
+  .ep-selo{flex-shrink:0;align-self:center;font-size:10.5px;font-weight:700;letter-spacing:.02em;
+    padding:1px 7px;border-radius:5px;border:1px solid var(--line);background:var(--line-2);color:var(--ink-2)}
+  .ep-selo.cob{background:var(--amber-t);border-color:var(--brd-warn);color:var(--amber)}
+  .ep-vazio{padding:24px 10px;text-align:center;color:var(--ink-3);font-size:12.5px}
+  .ep-pe{display:flex;flex-direction:column;gap:10px;padding:10px;border-top:1px solid var(--line-2);background:var(--card)}
+  .ep-bandeja{display:flex;align-items:center;gap:6px;flex-wrap:wrap;min-height:28px;font-size:12px;color:var(--ink-3)}
+  .ep-bandeja .tag{padding:3px 5px 3px 9px;font-size:12px}
+  .ep-acoes{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .ep-acoes .esp{margin-left:auto}
+
   /* barra de sistemas */
   .sysbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
   .systab{display:flex;align-items:center;gap:8px;padding:9px 14px;border:1px solid var(--line);border-radius:9px;background:var(--card);color:var(--ink-2);font-size:13px;font-weight:600;cursor:pointer;box-shadow:var(--sh);
@@ -1522,7 +1608,8 @@ const API = location.origin + "/api";
 let TOKEN = localStorage.getItem("iam_token") || null;
 let USER = JSON.parse(localStorage.getItem("iam_user") || "null");
 let CAT = { papeis: [], sistemas: [], permissoes: [] };
-let ESCOPO_OPC = {}; // { COORDENADOR:[...], SUPERVISOR:[...], LIDER:[...], PROJETO:[...], EQUIPE:[...] } — do organograma
+let ESCOPO_OPC = {}; // { COORDENADOR:[...], SUPERVISOR:[...], LIDER:[...], PROJETO:[...], EQUIPE:[...], LINHAS:[...] } — do organograma
+let ORG = null; // ESCOPO_OPC.LINHAS indexado — montado na primeira vez que org() é chamado
 let FOTO_BASE = ""; // URL do PCP que resolve a foto por nome (upload → Unico People)
 let dId = null, dDet = null, selSis = "PCP", dTab = "acessos";
 /* Onde Perfil/Treinamento estão sendo desenhados agora: "dwBody" (gaveta de Usuários)
@@ -2041,7 +2128,7 @@ async function entrar() {
   // as três são independentes: vão em paralelo (mais rápido) e a barra anda a cada uma que chega
   const passos = [
     ["Catálogo de sistemas e telas", async () => { CAT = await api("/admin/catalogo"); }],
-    ["Organograma e escopos", async () => { ESCOPO_OPC = await api("/admin/escopo-opcoes"); }],
+    ["Organograma e escopos", async () => { ESCOPO_OPC = await api("/admin/escopo-opcoes"); ORG = null; }],
     ["Configuração do console", async () => { FOTO_BASE = (await api("/admin/ui-config")).fotoBase || ""; }],
   ];
   let feitos = 0;
@@ -2358,14 +2445,15 @@ el("dwClose").onclick = fechar; el("scrim").onclick = fechar;
 function fechar() {
   const idAnterior = dId;
   el("drawer").classList.remove("show"); el("scrim").classList.remove("show");
-  // Esvazia o corpo: o Perfil monta ids fixos (#dPapelSel, #dEscTipo…) e o painel de
+  // Esvazia o corpo: o Perfil monta ids fixos (#dPapelSel, #epBusca…) e o painel de
   // Perfil do fluxo Sistemas monta os mesmos. Deixar o conteúdo aqui depois de fechar
   // faria existirem dois de cada, e el() devolveria o desta gaveta — a invisível.
   el("dwBody").innerHTML = "";
   dId = null;
   // Fechar é desistir: sem isto, reabrir a MESMA pessoa cairia direto no formulário com
   // o rascunho de antes (o rascunho é amarrado ao id, e o id volta a ser o mesmo).
-  ctEdit = null;
+  // O mesmo vale para o que estava marcado no seletor de escopo.
+  ctEdit = null; escSel = null;
   atualizarTravaFundo();
   // devolve o foco pra linha que abriu o drawer (a tabela é reconstruída no carregar())
   carregar().then(() => { const tr = el("tbody").querySelector(`tr[data-uid="${idAnterior}"]`); if (tr) tr.focus(); });
@@ -2770,7 +2858,7 @@ function renderPerfil() {
     </div></div>
 
     <div class="block"><div class="bh" style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px">
-      <div><h4>Escopo — o que a pessoa enxerga</h4><p>GLOBAL vê tudo. Coordenador/Supervisor pelo nome (puxam os projetos deles). Equipe/Projeto pelo código. Baseado no organograma.</p></div>
+      <div><h4>Escopo — o que a pessoa enxerga</h4><p>GLOBAL vê tudo. Coordenador e supervisor puxam todos os projetos deles. Projeto e equipe valem só o que for marcado. Tudo vem do organograma.</p></div>
       <button class="btn sm ghost" id="dTransfBtn" style="white-space:nowrap" aria-expanded="false">⇄ Transferir</button>
     </div><div class="bc">
       <div id="dTransfPanel" style="display:none;border:1px solid var(--line);border-radius:9px;padding:10px;margin-bottom:10px;background:var(--card-2)">
@@ -2783,77 +2871,239 @@ function renderPerfil() {
         <div id="tfResultados" style="margin-top:6px"></div>
       </div>
       <div id="dEscopos"></div>
-      <div class="addrow">
-        <select class="inp" id="dEscTipo" style="max-width:150px" aria-label="Tipo de escopo"><option>GLOBAL</option><option>COORDENADOR</option><option>SUPERVISOR</option><option>EQUIPE</option><option>PROJETO</option></select>
-        <input class="inp" id="dEscValor" list="escOpc" placeholder="escolha do organograma…" aria-label="Âncora do escopo" />
-        <datalist id="escOpc"></datalist>
-        <button class="btn sm" id="dEscAdd">Adicionar</button>
-      </div>
+      <button type="button" class="btn sm ep-abrir" id="epAbrir" aria-expanded="false" aria-controls="epPainel">${ICO_MAIS}Adicionar escopo</button>
+      <div id="epPainel"></div>
+      <p class="ep-nota">${ICO_INFO}<span>Vale no próximo login da pessoa: o escopo vai dentro do token de acesso, que dura até 12&nbsp;h.
+        Sistemas que consultam <span class="mono">/api/auth/resolve</span> refletem na hora.</span></p>
     </div></div>`;
 
   el("dPapeis").innerHTML = (dDet.papeis || []).length
     ? dDet.papeis.map((p) => `<span class="tag">${esc(p.NOME)}<button data-delp="${p.ID}" aria-label="Remover papel ${esc(p.NOME)}">✕</button></span>`).join("")
     : '<span class="hint">nenhum papel</span>';
   renderEscopos();
-  // datalist do valor conforme o tipo (opções do organograma)
-  const atualizaOpc = () => {
-    const t = el("dEscTipo").value;
-    el("escOpc").innerHTML = (ESCOPO_OPC[t] || []).map((v) => `<option value="${esc(v)}">`).join("");
-    el("dEscValor").disabled = t === "GLOBAL";
-    el("dEscValor").placeholder = t === "GLOBAL" ? "(não precisa de âncora)"
-      : t === "PROJETO" ? "código do projeto…" : t === "EQUIPE" ? "código da equipe…" : "escolha do organograma…";
-    if (t === "GLOBAL") el("dEscValor").value = "";
-  };
-  el("dEscTipo").onchange = atualizaOpc; atualizaOpc();
+  el("epAbrir").onclick = () => abrirSeletor();
+  pintarSeletor();
 
   wireContato();
   el("dPapelAdd").onclick = (e) => { carregando(e.currentTarget); mut("POST", `/admin/usuarios/${dId}/papeis`, { papel_id: Number(el("dPapelSel").value) }); };
-  el("dEscAdd").onclick = (e) => { carregando(e.currentTarget); mut("POST", `/admin/usuarios/${dId}/escopo`, { tipo: el("dEscTipo").value, valor: el("dEscValor").value }); };
   el("dPapeis").querySelectorAll("[data-delp]").forEach((b) => b.onclick = () => { b.textContent = "…"; mut("DELETE", `/admin/usuarios/${dId}/papeis/${b.dataset.delp}`); });
   wireTransferencia();
 }
 
-// Escopo editável: âncoras (GLOBAL/coord/sup) em caixas; projetos e equipes como chips com ✕.
-function renderEscopos() {
-  const escs = dDet.escopos || [];
-  if (!escs.length) { el("dEscopos").innerHTML = '<span class="hint">sem escopo — não enxerga nada</span>'; return; }
-  const ancoras = escs.filter((e) => ["GLOBAL", "COORDENADOR", "SUPERVISOR"].includes(e.TIPO));
-  const projetos = escs.filter((e) => e.TIPO === "PROJETO");
-  const equipes = escs.filter((e) => e.TIPO === "EQUIPE");
+/* ══ ESCOPO ══
+   O organograma chega do servidor em LINHAS: cada linha traz coordenador, supervisor,
+   líder, equipe e projeto juntos. Indexado aqui uma vez, ele dá o nome ao lado do código
+   ("202AC - líder", "700 - supervisor") e diz o que cada escopo cobre sem ir ao servidor. */
+const ICO_MAIS = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M8 3.2v9.6M3.2 8h9.6"/></svg>';
+const ICO_ALERTA = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.13 2.55a1 1 0 0 1 1.74 0l5.5 9.9a1 1 0 0 1-.87 1.48H2.5a1 1 0 0 1-.87-1.48z"/><path d="M8 6.3v3.2M8 11.6v.01"/></svg>';
+const ICO_INFO = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="8" cy="8" r="6.2"/><path d="M8 7.3v3.6M8 5.2v.01"/></svg>';
+const ICO_LUPA = '<svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5L14 14"/></svg>';
 
-  const caixaAncora = (e) => {
+const ROT_TIPO = { GLOBAL: "Global", COORDENADOR: "Coordenador", SUPERVISOR: "Supervisor", PROJETO: "Projeto", EQUIPE: "Equipe" };
+// hierárquica, de cima para baixo — é a ordem em que o organograma é lido
+const ABAS_ESC = ["COORDENADOR", "SUPERVISOR", "PROJETO", "EQUIPE"];
+const DICA_ABA = {
+  COORDENADOR: "Nome do coordenador…", SUPERVISOR: "Nome do supervisor…",
+  PROJETO: "Código do projeto ou nome do supervisor…", EQUIPE: "Código da equipe ou nome do líder…",
+};
+const pl = (n, um, varios) => n + " " + (n === 1 ? um : varios);
+// numeric: "702" antes de "1004", e "841AB" depois de "841AA"
+const cmpCod = (a, b) => String(a || "").localeCompare(String(b || ""), "pt-BR", { numeric: true, sensitivity: "base" });
+const lista = (vals) => [...new Set(vals)].filter(Boolean).sort(cmpCod);
+const resumo = (arr, n = 5) => arr.length > n ? arr.slice(0, n).join(", ") + ` e mais ${arr.length - n}` : arr.join(", ");
+const semAcento = (s) => String(s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+const chaveEsc = (tipo, valor) => tipo + "\t" + (valor == null ? "" : valor);
+const pega = (m, k, novo) => { let v = m.get(k); if (!v) m.set(k, v = novo()); return v; };
+
+function org() {
+  if (ORG) return ORG;
+  let linhas = ESCOPO_OPC.LINHAS;
+  // Servidor ainda na versão anterior da rota (sem LINHAS): uma linha solta por valor.
+  // O seletor funciona do mesmo jeito, só sem o nome ao lado do código.
+  if (!Array.isArray(linhas)) {
+    linhas = [];
+    for (const [col, vals] of Object.entries(ESCOPO_OPC)) if (col in ROT_TIPO && Array.isArray(vals)) vals.forEach((v) => linhas.push({ [col]: v }));
+  }
+  const eq = new Map(), pj = new Map(), sp = new Map(), co = new Map(), par = new Map();
+  for (const l of linhas) {
+    const { COORDENADOR: c, SUPERVISOR: s, LIDER: li, EQUIPE: e, PROJETO: p } = l;
+    if (e) { const x = pega(eq, e, () => ({ lideres: [], linhas: [] })); x.lideres.push(li); x.linhas.push(l); }
+    if (p) {
+      const x = pega(pj, p, () => ({ sups: [], linhas: [] })); x.sups.push(s || ""); x.linhas.push(l);
+      // o par projeto+supervisor é a "parte" do projeto que a TI pode escolher sozinha
+      const y = pega(par, chaveEsc(p, s), () => ({ equipes: [], linhas: [] })); y.equipes.push(e); y.linhas.push(l);
+    }
+    if (s) { const x = pega(sp, s, () => ({ projetos: [], linhas: [] })); x.projetos.push(p); x.linhas.push(l); }
+    if (c) { const x = pega(co, c, () => ({ projetos: [], sups: [], linhas: [] })); x.projetos.push(p); x.sups.push(s); x.linhas.push(l); }
+  }
+  ORG = { vazio: !linhas.length, eq, pj, sp, co, par };
+  ORG.itens = montarItens(ORG);
+  ORG.porK = new Map(ABAS_ESC.flatMap((t) => ORG.itens[t].map((it) => [it.k, it])));
+  return ORG;
+}
+
+/* O que cada aba do seletor oferece. Não depende da pessoa — por isso fica no ORG.
+   grava = o que o "Adicionar" manda ao servidor; linhas = o pedaço do organograma que
+   o item cobre, usado para dizer "já coberto por…". */
+function montarItens(o) {
+  const itens = { COORDENADOR: [], SUPERVISOR: [], PROJETO: [], EQUIPE: [] };
+  for (const c of [...o.co.keys()].sort(cmpCod)) {
+    const x = o.co.get(c), ps = lista(x.projetos);
+    itens.COORDENADOR.push({ chave: c, nome: c, linhas: x.linhas, grava: [{ tipo: "COORDENADOR", valor: c }],
+      meta: `${pl(lista(x.sups).length, "supervisor", "supervisores")} · ${pl(ps.length, "projeto", "projetos")}` });
+  }
+  for (const s of [...o.sp.keys()].sort(cmpCod)) {
+    const x = o.sp.get(s), ps = lista(x.projetos);
+    itens.SUPERVISOR.push({ chave: s, nome: s, linhas: x.linhas, grava: [{ tipo: "SUPERVISOR", valor: s }],
+      meta: ps.length ? `${pl(ps.length, "projeto", "projetos")}: ${resumo(ps)}` : "sem projeto no organograma" });
+  }
+  for (const p of [...o.pj.keys()].sort(cmpCod)) {
+    const sups = [...new Set(o.pj.get(p).sups)].sort(cmpCod);
+    if (sups.length === 1) {
+      const eqs = lista(o.par.get(chaveEsc(p, sups[0])).equipes);
+      itens.PROJETO.push({ chave: p, cod: p, nome: sups[0], linhas: o.pj.get(p).linhas, grava: [{ tipo: "PROJETO", valor: p }],
+        meta: eqs.length ? `${pl(eqs.length, "equipe", "equipes")}: ${resumo(eqs)}` : "" });
+      continue;
+    }
+    // Projeto com mais de um supervisor: uma linha por supervisor, e cada uma grava as
+    // EQUIPES daquela parte — é assim que "700 - ANA" mostra só a parte da ANA sem um
+    // tipo de escopo novo no motor. Marcar todas as partes vira o projeto inteiro
+    // (ver resolverMarcados). A lista congela: equipe nova da ANA no 700 não entra sozinha.
+    for (const s of sups) {
+      const y = o.par.get(chaveEsc(p, s)), eqs = lista(y.equipes);
+      itens.PROJETO.push({ chave: chaveEsc(p, s), cod: p, nome: s || "sem supervisor", parte: p, off: !eqs.length, linhas: y.linhas,
+        grava: eqs.map((e) => ({ tipo: "EQUIPE", valor: e })),
+        meta: eqs.length ? `só esta parte · ${pl(eqs.length, "equipe", "equipes")}: ${resumo(eqs)}` : "sem equipe no organograma — só dá para o projeto inteiro" });
+    }
+  }
+  for (const e of [...o.eq.keys()].sort(cmpCod)) {
+    const x = o.eq.get(e), ps = lista(x.linhas.map((l) => l.PROJETO)), ss = lista(x.linhas.map((l) => l.SUPERVISOR));
+    itens.EQUIPE.push({ chave: e, cod: e, nome: lista(x.lideres).join(", "), linhas: x.linhas, grava: [{ tipo: "EQUIPE", valor: e }],
+      meta: [ps.length ? "projeto " + ps.join(", ") : "", ss.length ? "supervisor " + ss.join(", ") : ""].filter(Boolean).join(" · ") });
+  }
+  for (const t of ABAS_ESC) for (const it of itens[t]) {
+    it.k = t + "|" + it.chave;
+    it.busca = semAcento([it.cod, it.nome, it.meta].join(" "));
+  }
+  return itens;
+}
+
+const temSet = () => new Set((dDet.escopos || []).map((e) => chaveEsc(e.TIPO, e.VALOR)));
+// Mesmo OR do montarFiltroEscopo (src/lib/acesso.cjs): uma linha é vista se QUALQUER escopo
+// pega uma das colunas dela. Devolve quem a cobre, para a tela poder dizer.
+function quemCobre(l, tem) {
+  if (l.COORDENADOR && tem.has(chaveEsc("COORDENADOR", l.COORDENADOR))) return "coordenador " + l.COORDENADOR;
+  if (l.SUPERVISOR && tem.has(chaveEsc("SUPERVISOR", l.SUPERVISOR))) return "supervisor " + l.SUPERVISOR;
+  if (l.PROJETO && tem.has(chaveEsc("PROJETO", l.PROJETO))) return "projeto " + l.PROJETO;
+  if (l.EQUIPE && tem.has(chaveEsc("EQUIPE", l.EQUIPE))) return "equipe " + l.EQUIPE;
+  return null;
+}
+// tem = a pessoa já tem exatamente isto · cob = não tem, mas outros escopos já cobrem tudo
+function estadoItem(it, tem) {
+  if (it.grava.length && it.grava.every((g) => tem.has(chaveEsc(g.tipo, g.valor)))) return { tem: true };
+  if (it.parte && tem.has(chaveEsc("PROJETO", it.parte))) return { tem: true };
+  if (!it.linhas.length) return {};
+  const quem = new Set();
+  for (const l of it.linhas) { const q = quemCobre(l, tem); if (!q) return {}; quem.add(q); }
+  return { cob: quem.size === 1 ? "já coberto por " + [...quem][0] : "já coberto por outros escopos" };
+}
+const noOrganograma = (tipo, valor) => {
+  const o = org();
+  const m = { EQUIPE: o.eq, PROJETO: o.pj, SUPERVISOR: o.sp, COORDENADOR: o.co }[tipo];
+  return o.vazio || !m || m.has(valor); // organograma que não carregou não condena ninguém
+};
+// "202AC - RODRIGO" / "700 - ANA, JOÃO": o nome que a TI reconhece, ao lado do código
+function nomeDe(tipo, valor) {
+  const o = org();
+  if (tipo === "EQUIPE") return lista((o.eq.get(valor) || { lideres: [] }).lideres).join(", ");
+  if (tipo === "PROJETO") return lista((o.pj.get(valor) || { sups: [] }).sups).join(", ");
+  return "";
+}
+const rotuloItem = (it) => it.cod
+  ? `<span class="cod">${esc(it.cod)}</span>${it.nome ? " - " + esc(it.nome) : ""}`
+  : esc(it.nome);
+
+// Escopo atual: âncoras (GLOBAL/coord/sup) em caixas; projetos e equipes como chips com ✕.
+function renderEscopos() {
+  const escs = dDet.escopos || [], o = org(), nome = dDet.usuario.NOME;
+  const temGlobal = escs.some((e) => e.TIPO === "GLOBAL");
+  const ORDEM = { GLOBAL: 0, COORDENADOR: 1, SUPERVISOR: 2 };
+  const ancoras = escs.filter((e) => e.TIPO in ORDEM).sort((a, b) => ORDEM[a.TIPO] - ORDEM[b.TIPO] || cmpCod(a.VALOR, b.VALOR));
+  const projetos = escs.filter((e) => e.TIPO === "PROJETO").sort((a, b) => cmpCod(a.VALOR, b.VALOR));
+  const equipes = escs.filter((e) => e.TIPO === "EQUIPE").sort((a, b) => cmpCod(a.VALOR, b.VALOR));
+  // com GLOBAL, o motor devolve 1=1 e nem lê o resto — apagado é o jeito honesto de mostrar
+  const inerte = temGlobal ? " ep-inerte" : "";
+  let html = "";
+
+  if (!escs.length) {
+    // Sem escopo o motor devolve 1=0: a pessoa não vê nada. O papel já diz que tipo falta.
+    const p = (dDet.papeis || []).find((x) => x.ESCOPO_TIPO_PADRAO in ROT_TIPO);
+    html += p
+      ? `<div class="ep-aviso" role="status">${ICO_ALERTA}<div>Sem escopo, <b>${esc(nome)}</b> não vê nada em nenhum sistema.
+           O papel <b>${esc(p.NOME)}</b> pede escopo <b>${ROT_TIPO[p.ESCOPO_TIPO_PADRAO]}</b>.</div>
+           <button type="button" class="btn sm" data-sugere="${p.ESCOPO_TIPO_PADRAO}">${p.ESCOPO_TIPO_PADRAO === "GLOBAL" ? "Dar GLOBAL…" : "Escolher " + ROT_TIPO[p.ESCOPO_TIPO_PADRAO].toLowerCase()}</button></div>`
+      : '<div class="hint" style="margin-bottom:4px">Sem escopo — não enxerga nada.</div>';
+  } else if (temGlobal && escs.length > 1) {
+    html += `<div class="ep-aviso" role="status">${ICO_ALERTA}<div><b>GLOBAL ativo:</b> ${esc(nome)} vê todos os projetos.
+      Os demais escopos abaixo não têm efeito enquanto ele existir.</div></div>`;
+  }
+
+  html += ancoras.map((e) => {
     const derivado = e.TIPO === "COORDENADOR" || e.TIPO === "SUPERVISOR";
-    return `<div class="escrow" data-tipo="${esc(e.TIPO)}" data-valor="${esc(e.VALOR || "")}"
+    return `<div class="escrow${e.TIPO === "GLOBAL" ? "" : inerte}" data-tipo="${esc(e.TIPO)}" data-valor="${esc(e.VALOR || "")}"
          style="border:1px solid var(--line);border-radius:9px;padding:9px 11px;margin-bottom:7px;background:var(--card)">
       <div class="row" style="justify-content:space-between">
         <span style="font-size:13px"><b>${esc(e.TIPO)}</b>${e.VALOR ? " · " + esc(e.VALOR) : ""}</span>
         <span class="row" style="gap:6px">
-          ${derivado ? `<button class="btn sm ghost" data-expandir="${e.ID}" title="Vira projetos avulsos para você tirar/pôr um a um">Destravar p/ editar</button>` : ""}
-          <button class="btn sm danger" data-dele="${e.ID}">Remover</button>
+          ${derivado ? `<button class="btn sm ghost" data-destravar="${e.ID}" title="Vira projetos avulsos para você tirar/pôr um a um">Destravar p/ editar</button>` : ""}
+          <button class="btn sm danger" data-tirar-ancora="${e.ID}">Remover</button>
         </span>
       </div>
       <div class="hint cobertura" style="margin-top:5px">carregando cobertura…</div>
     </div>`;
+  }).join("");
+
+  const chip = (e) => {
+    const nm = nomeDe(e.TIPO, e.VALOR), fora = !noOrganograma(e.TIPO, e.VALOR);
+    return `<span class="tag${fora ? " fora" : ""}"><span><span class="cod">${esc(e.VALOR)}</span>${nm ? `<span class="nm2"> - ${esc(nm)}</span>` : ""}${fora ? '<span class="nm2"> · fora do organograma</span>' : ""}</span><button type="button" data-tirar="${e.ID}" title="Tirar" aria-label="Tirar ${ROT_TIPO[e.TIPO].toLowerCase()} ${esc(e.VALOR)}">✕</button></span>`;
   };
-  const linhaChips = (titulo, arr, vazio) => `
-    <div style="margin:4px 0 9px">
-      <div class="hint" style="margin-bottom:4px">${titulo}</div>
-      <div class="row" style="gap:6px">${arr.length
-        ? arr.map((e) => `<span class="tag">${esc(e.VALOR)}<button data-dele="${e.ID}" title="tirar" aria-label="Tirar ${esc(e.VALOR)}">✕</button></span>`).join("")
-        : `<span class="hint" style="opacity:.7">${vazio}</span>`}</div>
-    </div>`;
+  if (projetos.length) html += `<div class="ep-secao${inerte}"><div class="ep-secao-h">Projetos inteiros</div>
+    <div class="row" style="gap:6px">${projetos.map(chip).join("")}</div></div>`;
 
-  el("dEscopos").innerHTML =
-    ancoras.map(caixaAncora).join("") +
-    linhaChips("Projetos avulsos", projetos, "nenhum — adicione abaixo (tipo PROJETO)") +
-    linhaChips("Equipes", equipes, "nenhuma — adicione abaixo (tipo EQUIPE)");
+  // Equipes agrupadas pela parte do projeto de onde vêm (projeto · supervisor). O "2 de 3"
+  // é o que denuncia a lista congelada: equipe nova naquela parte aparece como faltante.
+  const incluir = [];
+  if (equipes.length) {
+    const grupos = new Map(), FORA = "\u0000";
+    for (const e of equipes) {
+      const l = ((o.eq.get(e.VALOR) || { linhas: [] }).linhas).find((x) => x.PROJETO);
+      pega(grupos, l ? chaveEsc(l.PROJETO, l.SUPERVISOR) : FORA, () => []).push(e);
+    }
+    const tem = new Set(equipes.map((e) => e.VALOR));
+    const chaves = [...grupos.keys()].sort((a, b) => (a === FORA) - (b === FORA) || cmpCod(a, b));
+    html += `<div class="ep-secao${inerte}"><div class="ep-secao-h">Equipes</div>` + chaves.map((k) => {
+      const chips = `<div class="row" style="gap:6px">${grupos.get(k).map(chip).join("")}</div>`;
+      if (k === FORA) return `<div class="ep-grupo">${chips}</div>`;
+      const [p, s] = k.split("\t"), todas = lista(o.par.get(k).equipes), faltam = todas.filter((x) => !tem.has(x));
+      if (faltam.length) incluir.push(faltam);
+      return `<div class="ep-grupo"><div class="ep-grupo-h"><span><b>${esc(p)}</b>${s ? " · " + esc(s) : ""}</span>
+        <span>${todas.length - faltam.length} de ${pl(todas.length, "equipe", "equipes")}</span>
+        ${faltam.length ? `<button type="button" class="ep-link" data-incluir="${incluir.length - 1}" title="${esc(faltam.join(", "))}">incluir ${faltam.length === 1 ? "a que falta" : "as " + faltam.length + " que faltam"}</button>` : ""}</div>${chips}</div>`;
+    }).join("") + "</div>";
+  }
 
-  el("dEscopos").querySelectorAll("[data-dele]").forEach((b) => b.onclick = () => {
-    if (b.classList.contains("btn")) carregando(b); else b.textContent = "…";
-    mut("DELETE", `/admin/usuarios/${dId}/escopo/${b.dataset.dele}`);
+  const raiz = el("dEscopos");
+  raiz.innerHTML = html;
+  const acha = (id) => escs.find((e) => e.ID === Number(id));
+  raiz.querySelectorAll("[data-tirar]").forEach((b) => b.onclick = () => tirarEscopo(acha(b.dataset.tirar), b));
+  raiz.querySelectorAll("[data-tirar-ancora]").forEach((b) => b.onclick = () => tirarAncora(acha(b.dataset.tirarAncora), b));
+  raiz.querySelectorAll("[data-destravar]").forEach((b) => b.onclick = () => destravar(acha(b.dataset.destravar), b));
+  raiz.querySelectorAll("[data-sugere]").forEach((b) => b.onclick = () => (b.dataset.sugere === "GLOBAL" ? darGlobal(b) : abrirSeletor(b.dataset.sugere)));
+  raiz.querySelectorAll("[data-incluir]").forEach((b) => b.onclick = () => {
+    b.disabled = true; b.textContent = "incluindo…";
+    gravarEscopos(incluir[Number(b.dataset.incluir)].map((v) => ({ tipo: "EQUIPE", valor: v })));
   });
-  el("dEscopos").querySelectorAll("[data-expandir]").forEach((b) => b.onclick = () => { carregando(b); mut("POST", `/admin/usuarios/${dId}/escopo/${b.dataset.expandir}/expandir`); });
-  el("dEscopos").querySelectorAll(".escrow").forEach(async (row) => {
+  raiz.querySelectorAll(".escrow").forEach(async (row) => {
     const cob = row.querySelector(".cobertura");
     try {
       const d = await api(`/admin/escopo-cobertura?tipo=${encodeURIComponent(row.dataset.tipo)}&valor=${encodeURIComponent(row.dataset.valor)}`);
@@ -2863,6 +3113,288 @@ function renderEscopos() {
       else cob.textContent = "→ nenhum projeto encontrado no organograma";
     } catch { cob.textContent = ""; }
   });
+}
+
+// Um POST por escopo, em sequência: a rota não tem versão em lote, e assim cada um audita
+// sozinho, na ordem em que aparece na tela. Quem chama já tirou o que a pessoa tem.
+async function gravarEscopos(itens, botao, { fecharSeletor = false } = {}) {
+  const uid = dId, falhas = [];
+  carregando(botao);
+  for (const g of itens) {
+    try { await api(`/admin/usuarios/${uid}/escopo`, { method: "POST", body: JSON.stringify(g) }); }
+    catch (e) { falhas.push(`${ROT_TIPO[g.tipo]} ${g.valor || ""}: ${e.message}`); }
+  }
+  const ok = itens.length - falhas.length;
+  if (falhas.length) toast(`${ok} de ${itens.length} adicionado(s). Falhou — ${esc(falhas.join(" · "))}`, 10000);
+  else toast(`${pl(ok, "escopo adicionado", "escopos adicionados")}.`);
+  if (dId !== uid) return; // trocou de pessoa enquanto gravava
+  // Com falha o seletor fica aberto e marcado: o próximo "Adicionar" só manda o que faltou,
+  // porque o que deu certo passa a constar como "já tem" e sai da marcação.
+  if (fecharSeletor && !falhas.length && escSel && escSel.id === uid) { escSel.aberto = false; escSel.marc.clear(); escSel.busca = ""; }
+  await recarregarDetalhe();
+}
+
+// Chip ✕ não pede confirmação: tirar é o gesto mais comum do bloco, e um modal a cada um
+// pesaria para quem tira dez seguidos. O Desfazer no aviso cobre o clique errado.
+async function tirarEscopo(e, botao) {
+  const uid = dId;
+  botao.textContent = "…";
+  try { await api(`/admin/usuarios/${uid}/escopo/${e.ID}`, { method: "DELETE" }); }
+  catch (ex) { toast("Erro: " + esc(ex.message)); if (dId === uid) await recarregarDetalhe(); return; }
+  toast(`Tirou <b>${ROT_TIPO[e.TIPO].toLowerCase()} ${esc(e.VALOR)}</b> do escopo. <button type="button" class="ep-link" data-desfazer>Desfazer</button>`, 9000);
+  el("toast").querySelector("[data-desfazer]").onclick = async (ev) => {
+    ev.currentTarget.disabled = true;
+    try {
+      await api(`/admin/usuarios/${uid}/escopo`, { method: "POST", body: JSON.stringify({ tipo: e.TIPO, valor: e.VALOR }) });
+      toast(`${ROT_TIPO[e.TIPO]} <b>${esc(e.VALOR)}</b> voltou para o escopo.`);
+    } catch (ex) { toast("Erro: " + esc(ex.message)); }
+    if (dId === uid) await recarregarDetalhe();
+  };
+  if (dId === uid) await recarregarDetalhe();
+}
+
+// As caixas (GLOBAL, coordenador, supervisor) valem muitos projetos de uma vez: aqui confirma.
+async function tirarAncora(e, botao) {
+  const nome = esc(dDet.usuario.NOME), outros = (dDet.escopos || []).length > 1;
+  const global = e.TIPO === "GLOBAL";
+  const ok = await confirmar({
+    titulo: global ? "Tirar o GLOBAL?" : `Tirar ${ROT_TIPO[e.TIPO].toLowerCase()} ${e.VALOR}?`, // título vai por textContent
+    mensagem: global
+      ? (outros ? `<b>${nome}</b> passa a ver só o que os outros escopos cobrem.` : `Sem outro escopo, <b>${nome}</b> deixa de ver qualquer projeto.`)
+      : `<b>${nome}</b> deixa de ver os projetos que vinham por <b>${esc(e.VALOR)}</b>, a não ser os que outro escopo cubra.`,
+    ok: "Tirar", perigo: true,
+  });
+  if (!ok) return;
+  carregando(botao);
+  mut("DELETE", `/admin/usuarios/${dId}/escopo/${e.ID}`);
+}
+
+// Destravar troca a atualização automática pelo controle manual — a mensagem diz o preço.
+async function destravar(e, botao) {
+  const x = (e.TIPO === "COORDENADOR" ? org().co : org().sp).get(e.VALOR);
+  const ps = x ? lista(x.projetos) : [];
+  const ok = await confirmar({
+    titulo: `Destravar ${ROT_TIPO[e.TIPO].toLowerCase()} ${e.VALOR}?`,
+    mensagem: `Vira ${ps.length ? `${pl(ps.length, "projeto avulso", "projetos avulsos")} (${esc(resumo(ps, 12))})` : "projetos avulsos"}, para você tirar ou pôr um a um.<br><br>
+      Projeto que entrar depois no organograma sob <b>${esc(e.VALOR)}</b> <b>não</b> entra sozinho: terá de ser adicionado à mão.`,
+    ok: "Destravar",
+  });
+  if (!ok) return;
+  carregando(botao);
+  mut("POST", `/admin/usuarios/${dId}/escopo/${e.ID}/expandir`);
+}
+
+async function darGlobal(botao) {
+  const ok = await confirmar({
+    titulo: "Dar escopo GLOBAL?",
+    mensagem: `<b>${esc(dDet.usuario.NOME)}</b> passa a ver todos os projetos, em todos os sistemas. Enquanto o GLOBAL existir, os outros escopos da pessoa deixam de filtrar.`,
+    ok: "Dar GLOBAL", perigo: true,
+  });
+  if (ok) await gravarEscopos([{ tipo: "GLOBAL", valor: null }], botao, { fecharSeletor: true });
+}
+
+/* ══ Seletor de escopo ══
+   Estado fora do DOM e amarrado à pessoa, como o rascunho do contato: um mut() vizinho
+   redesenha o Perfil e o seletor volta como estava — aba, busca e marcados. Marcar não
+   grava nada; só o "Adicionar" grava. GLOBAL não é aba: tem botão próprio e confirmação,
+   porque no select antigo ele vinha marcado e um clique sem olhar dava acesso a tudo. */
+let escSel = null;
+function estadoSel() {
+  if (!escSel || escSel.id !== dId) {
+    // abre na aba que o papel pede (LIDER → Equipe, PCP → Projeto…)
+    const t = (dDet.papeis || []).map((p) => p.ESCOPO_TIPO_PADRAO).find((x) => ABAS_ESC.includes(x));
+    escSel = { id: dId, aberto: false, aba: t || "EQUIPE", busca: "", marc: new Set() };
+  }
+  return escSel;
+}
+function abrirSeletor(aba) {
+  const s = estadoSel();
+  s.aberto = true;
+  if (aba) s.aba = aba;
+  pintarSeletor();
+  el("epPainel").scrollIntoView({ block: "nearest" });
+  const busca = el("epBusca");
+  if (busca) busca.focus(); // não existe quando o organograma não carregou
+}
+function fecharSeletor() {
+  const s = estadoSel();
+  s.aberto = false; s.marc.clear(); s.busca = "";
+  pintarSeletor();
+  el("epAbrir").focus();
+}
+
+/* Marcados → o que vai ao servidor. Quando as partes marcadas, somadas às que a pessoa já
+   tem, fecham o projeto (700 - ANA + 700 - JOÃO), vira o projeto inteiro: gravar PROJETO
+   700 em vez das equipes mantém a lista viva — equipe nova no 700 entra sozinha. */
+function resolverMarcados() {
+  const o = org(), tem = temSet(), grupos = [], partes = new Map();
+  for (const k of estadoSel().marc) {
+    const it = o.porK.get(k);
+    if (!it) continue;
+    if (it.parte) { pega(partes, it.parte, () => []).push(it); continue; }
+    grupos.push({ tipo: k.slice(0, k.indexOf("|")), rotulo: rotuloItem(it), chaves: [k], grava: it.grava });
+  }
+  for (const [p, its] of partes) {
+    const todas = o.itens.PROJETO.filter((i) => i.parte === p && !i.off);
+    if (todas.every((i) => its.includes(i) || estadoItem(i, tem).tem)) grupos.push({ tipo: "PROJETO", rotulo: `<span class="cod">${esc(p)}</span> - inteiro`, chaves: its.map((i) => i.k), grava: [{ tipo: "PROJETO", valor: p }] });
+    else its.forEach((it) => grupos.push({ tipo: "PROJETO", rotulo: rotuloItem(it), chaves: [it.k], grava: it.grava }));
+  }
+  return grupos;
+}
+
+function pintarSeletor() {
+  const s = estadoSel(), caixa = el("epPainel"), abrir = el("epAbrir");
+  abrir.classList.toggle("hidden", s.aberto);
+  abrir.setAttribute("aria-expanded", String(s.aberto));
+  if (!s.aberto) { caixa.innerHTML = ""; return; }
+  const o = org();
+  if (o.vazio) {
+    caixa.innerHTML = `<div class="ep"><div class="ep-vazio">O organograma não carregou — sem ele não há o que escolher. Recarregue a página.
+      <div style="margin-top:10px"><button type="button" class="btn sm" id="epFechar">Fechar</button></div></div></div>`;
+    el("epFechar").onclick = fecharSeletor;
+    return;
+  }
+  // o que já foi gravado (ou chegou por outro caminho) sai da marcação
+  const tem = temSet();
+  for (const k of [...s.marc]) { const it = o.porK.get(k); if (!it || estadoItem(it, tem).tem) s.marc.delete(k); }
+  const temGlobal = tem.has(chaveEsc("GLOBAL", null));
+
+  caixa.innerHTML = `<div class="ep" id="epCaixa">
+    <div class="ep-abas" id="epAbas" role="tablist" aria-label="Tipo de escopo"></div>
+    ${temGlobal ? `<div class="ep-aviso" style="margin:10px 10px 0">${ICO_ALERTA}<div>GLOBAL ativo: o que você adicionar aqui só passa a filtrar quando o GLOBAL sair.</div></div>` : ""}
+    <div class="ep-busca">${ICO_LUPA}<input class="inp" id="epBusca" type="text" autocomplete="off" spellcheck="false" aria-label="Buscar no organograma" aria-describedby="epDicaEnter"></div>
+    <span class="hidden" id="epDicaEnter">Enter marca o código digitado.</span>
+    <div class="ep-lista" id="epLista" role="tabpanel"></div>
+    <div class="ep-pe" id="epPe"></div>
+  </div>`;
+
+  const busca = el("epBusca");
+  busca.value = s.busca;
+  busca.oninput = () => { s.busca = busca.value; pintarLista(); };
+  // Enter marca o código exato digitado (ou o único resultado): dá para ir digitando
+  // 202AC ⏎ 202AE ⏎ sem tirar a mão do teclado.
+  busca.onkeydown = (e) => {
+    if (e.key !== "Enter") return;
+    e.preventDefault();
+    const q = semAcento(busca.value.trim());
+    if (!q) return;
+    const vis = visiveis(), tem2 = temSet();
+    const alvo = vis.find((it) => it.cod && semAcento(it.cod) === q) || (vis.length === 1 ? vis[0] : null);
+    if (!alvo || alvo.off || estadoItem(alvo, tem2).tem) return;
+    s.marc.add(alvo.k);
+    busca.select();
+    pintarAbas(); pintarLista(); pintarPe();
+  };
+  // Esc fecha só o seletor — sem parar aqui, o Esc do documento fecharia a gaveta inteira
+  el("epCaixa").onkeydown = (e) => { if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); fecharSeletor(); } };
+  el("epAbas").onkeydown = (e) => {
+    if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+    e.preventDefault();
+    const i = ABAS_ESC.indexOf(s.aba), n = ABAS_ESC.length;
+    trocarAba(ABAS_ESC[(i + (e.key === "ArrowRight" ? 1 : n - 1)) % n], true);
+  };
+  pintarAbas(); pintarLista(); pintarPe();
+}
+
+function trocarAba(tipo, focar) {
+  estadoSel().aba = tipo;
+  pintarAbas(); pintarLista();
+  if (focar) el("epAbas").querySelector(`[data-aba="${tipo}"]`).focus();
+}
+
+function pintarAbas() {
+  const s = estadoSel(), o = org();
+  el("epBusca").placeholder = DICA_ABA[s.aba];
+  el("epLista").setAttribute("aria-label", "Opções de " + ROT_TIPO[s.aba].toLowerCase());
+  el("epAbas").innerHTML = ABAS_ESC.map((t) => {
+    const on = t === s.aba, mk = [...s.marc].filter((k) => k.startsWith(t + "|")).length;
+    return `<button type="button" class="ep-aba" role="tab" data-aba="${t}" aria-selected="${on}" aria-controls="epLista" tabindex="${on ? 0 : -1}">
+      ${ROT_TIPO[t]}<span class="q">${o.itens[t].length}</span>${mk ? `<span class="mk" title="${pl(mk, "marcado", "marcados")}">${mk}</span>` : ""}</button>`;
+  }).join("");
+  el("epAbas").querySelectorAll("[data-aba]").forEach((b) => b.onclick = () => trocarAba(b.dataset.aba));
+}
+
+const visiveis = () => {
+  const s = estadoSel(), q = semAcento(s.busca.trim());
+  return org().itens[s.aba].filter((it) => !q || it.busca.includes(q));
+};
+
+function pintarLista() {
+  const s = estadoSel(), o = org(), tem = temSet(), caixa = el("epLista");
+  const vis = visiveis();
+  // redesenhar a lista a cada marcação: guarda rolagem e foco para não parecer que pulou
+  const rolagem = caixa.scrollTop, focoK = document.activeElement && caixa.contains(document.activeElement) ? document.activeElement.dataset.k : null;
+  if (!vis.length) {
+    caixa.innerHTML = `<div class="ep-vazio">${s.busca.trim()
+      ? `Nada com “${esc(s.busca.trim())}” em ${ROT_TIPO[s.aba]}. Outra aba pode ter.`
+      : `Nenhum item de ${ROT_TIPO[s.aba]} no organograma.`}</div>`;
+    return;
+  }
+  let html = "", parteAtual = null;
+  for (const it of vis) {
+    if (it.parte && it.parte !== parteAtual) {
+      const livres = o.itens.PROJETO.filter((i) => i.parte === it.parte && !i.off && !estadoItem(i, tem).tem);
+      const todasMarcadas = livres.length && livres.every((i) => s.marc.has(i.k));
+      html += `<div class="ep-sep"><span>Projeto <b>${esc(it.parte)}</b> tem ${o.itens.PROJETO.filter((i) => i.parte === it.parte).length} supervisores: cada linha libera só a parte de um</span>
+        ${livres.length ? `<button type="button" class="ep-link" data-inteiro="${esc(it.parte)}">${todasMarcadas ? "desmarcar" : "projeto inteiro"}</button>` : ""}</div>`;
+    }
+    parteAtual = it.parte || null;
+    const st = estadoItem(it, tem), on = s.marc.has(it.k);
+    html += `<label class="ep-item${on ? " on" : ""}${st.tem ? " tem" : ""}${it.off ? " off" : ""}">
+      <input type="checkbox" data-k="${esc(it.k)}"${on || st.tem ? " checked" : ""}${st.tem || it.off ? " disabled" : ""}>
+      <span class="ep-ck">${ICO_OK}</span>
+      <span class="ep-txt"><span class="ep-t">${rotuloItem(it)}</span>
+        ${it.meta ? `<span class="ep-m">${esc(it.meta)}</span>` : ""}
+        ${st.cob ? `<span class="ep-m cob">${esc(st.cob)}</span>` : ""}</span>
+      ${st.tem ? '<span class="ep-selo">já tem</span>' : st.cob ? '<span class="ep-selo cob">coberto</span>' : ""}
+    </label>`;
+  }
+  caixa.innerHTML = html;
+  caixa.scrollTop = rolagem;
+  if (focoK) { const f = caixa.querySelector(`input[data-k="${CSS.escape(focoK)}"]`); if (f) f.focus(); }
+  caixa.querySelectorAll("input[data-k]").forEach((cb) => cb.onchange = () => {
+    if (cb.checked) s.marc.add(cb.dataset.k); else s.marc.delete(cb.dataset.k);
+    pintarAbas(); pintarLista(); pintarPe();
+  });
+  caixa.querySelectorAll("[data-inteiro]").forEach((b) => b.onclick = () => {
+    const livres = o.itens.PROJETO.filter((i) => i.parte === b.dataset.inteiro && !i.off && !estadoItem(i, tem).tem);
+    const todas = livres.every((i) => s.marc.has(i.k));
+    livres.forEach((i) => (todas ? s.marc.delete(i.k) : s.marc.add(i.k)));
+    pintarAbas(); pintarLista(); pintarPe();
+  });
+}
+
+function pintarPe() {
+  const s = estadoSel(), grupos = resolverMarcados();
+  const temGlobal = temSet().has(chaveEsc("GLOBAL", null));
+  el("epPe").innerHTML = `
+    <div class="ep-bandeja" aria-live="polite">${grupos.length
+      ? grupos.map((g, i) => `<span class="tag esc"><span><span class="nm2">${ROT_TIPO[g.tipo]}</span> ${g.rotulo}</span><button type="button" data-desmarca="${i}" aria-label="Desmarcar">✕</button></span>`).join("")
+        + '<button type="button" class="ep-link" id="epLimpar">limpar</button>'
+      : "Marque um ou mais itens, de qualquer aba."}</div>
+    <div class="ep-acoes">
+      ${temGlobal ? "" : '<button type="button" class="btn sm ghost" id="epGlobal" title="Ver todos os projetos, sem filtro">Dar GLOBAL…</button>'}
+      <span class="esp"></span>
+      <button type="button" class="btn sm" id="epCancelar">Cancelar</button>
+      <button type="button" class="btn sm pri" id="epAdd"${grupos.length ? "" : " disabled"}>Adicionar${grupos.length ? " " + grupos.length : ""}</button>
+    </div>`;
+  el("epPe").querySelectorAll("[data-desmarca]").forEach((b) => b.onclick = () => {
+    grupos[Number(b.dataset.desmarca)].chaves.forEach((k) => s.marc.delete(k));
+    pintarAbas(); pintarLista(); pintarPe();
+  });
+  if (grupos.length) el("epLimpar").onclick = () => { s.marc.clear(); pintarAbas(); pintarLista(); pintarPe(); };
+  if (!temGlobal) el("epGlobal").onclick = (e) => darGlobal(e.currentTarget);
+  el("epCancelar").onclick = fecharSeletor;
+  el("epAdd").onclick = (e) => {
+    // o que a pessoa já tem não vai de novo: o servidor ignoraria, mas gravaria auditoria mesmo assim
+    const tem = temSet(), vistos = new Set(), itens = [];
+    for (const g of resolverMarcados()) for (const w of g.grava) {
+      const k = chaveEsc(w.tipo, w.valor);
+      if (!tem.has(k) && !vistos.has(k)) { vistos.add(k); itens.push(w); }
+    }
+    if (!itens.length) { toast("A pessoa já tem tudo o que foi marcado."); return; }
+    gravarEscopos(itens, e.currentTarget, { fecharSeletor: true });
+  };
 }
 
 // Transferir escopo desta pessoa para outra (copiar ou mover).
@@ -3652,7 +4184,7 @@ function fecharSdPerfil() {
   SD.perfilId = null;
   dwAlvo = "dwBody";
   dId = null; dDet = null;
-  ctEdit = null; // mesmo motivo do fechar(): rascunho não sobrevive ao fechamento
+  ctEdit = null; escSel = null; // mesmo motivo do fechar(): rascunho não sobrevive ao fechamento
 }
 
 el("sdPPerfil").onclick = abrirSdPerfil;
