@@ -3706,6 +3706,12 @@ function paramsAud(exceto) {
   return q;
 }
 
+// true quando alguma OUTRA coluna (não `exceto`) está com o filtro aplicado e
+// zero valores marcados — nesse estado nenhuma linha pode bater, então nem vale
+// perguntar ao servidor (e evita o bug de "desmarquei tudo" virar "sem filtro").
+const algumFiltroVazio = (exceto) =>
+  Object.entries(AUD.filtros).some(([col, sel]) => col !== exceto && sel instanceof Set && sel.size === 0);
+
 async function carregarAuditoria() {
   const tb = el("audBody"), wrap = el("audWrap");
   if (!tb.children.length) tb.innerHTML = skAud(8);
@@ -3717,15 +3723,19 @@ async function carregarAuditoria() {
   // respostas podem chegar fora de ordem: só a da requisição mais recente desenha a tabela
   const seq = ++AUD.seq;
   let d;
-  try { d = await api("/admin/auditoria?" + q); }
-  catch (e) {
-    if (seq !== AUD.seq) return;
-    wrap.classList.remove("busy");
-    if (/inválido|expirado|restrito/i.test(e.message)) { limparSessao(); location.reload(); return; }
-    tb.innerHTML = `<tr class="no-hover"><td colspan="5"><div class="empty">Não foi possível carregar a auditoria.<div class="hint" style="margin:6px 0 12px">${esc(e.message)}</div><button class="btn sm" id="audRetry">Tentar de novo</button></div></td></tr>`;
-    el("audRetry").onclick = carregarAuditoria;
-    el("audCount").textContent = ""; el("audPag").textContent = "";
-    return;
+  if (algumFiltroVazio(null)) {
+    d = { registros: [], total: 0 };
+  } else {
+    try { d = await api("/admin/auditoria?" + q); }
+    catch (e) {
+      if (seq !== AUD.seq) return;
+      wrap.classList.remove("busy");
+      if (/inválido|expirado|restrito/i.test(e.message)) { limparSessao(); location.reload(); return; }
+      tb.innerHTML = `<tr class="no-hover"><td colspan="5"><div class="empty">Não foi possível carregar a auditoria.<div class="hint" style="margin:6px 0 12px">${esc(e.message)}</div><button class="btn sm" id="audRetry">Tentar de novo</button></div></td></tr>`;
+      el("audRetry").onclick = carregarAuditoria;
+      el("audCount").textContent = ""; el("audPag").textContent = "";
+      return;
+    }
   }
   if (seq !== AUD.seq) return;
   wrap.classList.remove("busy");
@@ -3871,12 +3881,16 @@ async function abrirFx(ordCol, btn) {
   el("fxBusca").value = "";
   el("fxLista").innerHTML = repetir(6, () => `<div class="fx-item">${sk("16px", 16, "border-radius:4px;flex:none")}${sk("70%")}</div>`);
 
-  try {
-    const q = paramsAud(col); q.set("coluna", col);
-    const valores = (await api("/admin/auditoria/valores?" + q)).valores || [];
-    if (fxCol !== ordCol) return; // popup fechou ou trocou de coluna enquanto carregava
-    fxValores = valores;
-  } catch (e) { if (fxCol === ordCol) el("fxLista").innerHTML = `<div class="fx-vazio">${esc(e.message)}</div>`; return; }
+  if (algumFiltroVazio(col)) {
+    fxValores = []; // outra coluna já está com 0 valores marcados: nada pode bater aqui também
+  } else {
+    try {
+      const q = paramsAud(col); q.set("coluna", col);
+      const valores = (await api("/admin/auditoria/valores?" + q)).valores || [];
+      if (fxCol !== ordCol) return; // popup fechou ou trocou de coluna enquanto carregava
+      fxValores = valores;
+    } catch (e) { if (fxCol === ordCol) el("fxLista").innerHTML = `<div class="fx-vazio">${esc(e.message)}</div>`; return; }
+  }
 
   // sem filtro na coluna = tudo marcado
   const atual = AUD.filtros[col];
