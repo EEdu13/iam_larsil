@@ -3899,10 +3899,16 @@ async function abrirFx(ordCol, btn) {
   el("fxBusca").focus();
 }
 
-function renderFxLista() {
+// valores que a busca do popup deixa à mostra (sem busca = todos)
+function fxVisiveis() {
   const col = FX_COL[fxCol].filtro;
   const termo = el("fxBusca").value.trim().toLowerCase();
-  const vis = fxValores.filter((v) => !termo || fxRotulo(col, v.valor).toLowerCase().includes(termo));
+  return fxValores.filter((v) => !termo || fxRotulo(col, v.valor).toLowerCase().includes(termo));
+}
+
+function renderFxLista() {
+  const col = FX_COL[fxCol].filtro;
+  const vis = fxVisiveis();
   if (!vis.length) { el("fxLista").innerHTML = '<div class="fx-vazio">Nenhum valor encontrado.</div>'; return; }
 
   const todosVis = vis.every((v) => fxMarcados.has(v.valor));
@@ -3923,8 +3929,13 @@ function renderFxLista() {
 el("fxBusca").addEventListener("input", debounce(() => { if (fxCol) renderFxLista(); }, 150));
 el("fxAplicar").onclick = () => {
   const col = FX_COL[fxCol].filtro;
+  // com busca digitada vale só o que está marcado E à mostra: o que a busca escondeu
+  // continua marcado por baixo e, antes, entrava no filtro junto (como no Excel, fica de fora)
+  const sel = el("fxBusca").value.trim()
+    ? new Set(fxVisiveis().filter((v) => fxMarcados.has(v.valor)).map((v) => v.valor))
+    : fxMarcados;
   // marcou tudo = sem filtro (evita listar 240 valores na query à toa)
-  AUD.filtros[col] = fxMarcados.size === fxValores.length ? null : new Set(fxMarcados);
+  AUD.filtros[col] = sel.size === fxValores.length ? null : new Set(sel);
   AUD.offset = 0; fecharFx(); carregarAuditoria();
 };
 el("fxLimpar").onclick = () => {
