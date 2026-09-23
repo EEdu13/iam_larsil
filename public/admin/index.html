@@ -482,16 +482,17 @@
 
   /* ══ Botão Sincronizar = a própria barra de progresso ══ */
   .sync-wrap{position:relative;display:inline-flex}
-  /* min-width fixo: o rótulo muda de texto e sem isso a barra de comandos dançaria */
-  #btnSync{position:relative;overflow:hidden;min-width:136px;justify-content:center}
+  /* min-width fixo: o rótulo muda de texto e sem isso a barra de comandos dançaria.
+     .sync-btn é reaproveitado pelo Sincronizar (Usuários) e pelo Atualizar (Auditoria). */
+  .sync-btn{position:relative;overflow:hidden;min-width:136px;justify-content:center}
   .sync-fill{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--tint);z-index:0;
     transition:width .3s linear,background-color .2s}
   .sync-fill.ok{background:var(--accent);animation:piscaOk .55s ease}
   .sync-fill.err{background:var(--danger-t)}
   @keyframes piscaOk{0%{background:var(--accent)}38%{background:var(--flash)}100%{background:var(--accent)}}
   .sync-lbl{position:relative;z-index:1;transition:color .2s}
-  #btnSync.ok .sync-lbl{color:#fff}
-  #btnSync.err .sync-lbl{color:var(--danger)}
+  .sync-btn.ok .sync-lbl{color:#fff}
+  .sync-btn.err .sync-lbl{color:var(--danger)}
   /* aviso flutuante acima do botão, com a setinha apontando pra ele */
   .sync-msg{position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%) translateY(5px);
     max-width:300px;width:max-content;text-align:center;line-height:1.35;
@@ -1362,7 +1363,7 @@
           </select>
           <span class="count" id="count" aria-live="polite"></span>
           <span class="sync-wrap">
-            <button class="btn ghost" id="btnSync" title="Puxa novos colaboradores ativos do RH. O sistema também sincroniza sozinho a cada 6h.">
+            <button class="btn ghost sync-btn" id="btnSync" title="Puxa novos colaboradores ativos do RH. O sistema também sincroniza sozinho a cada 6h.">
               <span class="sync-fill" id="syncFill" aria-hidden="true"></span>
               <span class="sync-lbl" id="syncLbl">↻ Sincronizar</span>
             </button>
@@ -1418,6 +1419,13 @@
           <label class="dt"><span>até</span><input type="date" id="audAte" class="inp" aria-label="Data final" /></label>
           <button class="btn ghost sm" id="audLimpar" title="Volta os filtros e a ordenação ao padrão. Não apaga registro nenhum.">Limpar filtros</button>
           <span class="count" id="audCount" aria-live="polite"></span>
+          <span class="sync-wrap">
+            <button class="btn ghost sync-btn" id="btnAudAtualizar" title="Recarrega a auditoria com os filtros e a página atuais — pega o que aconteceu desde que a tela abriu.">
+              <span class="sync-fill" id="audSyncFill" aria-hidden="true"></span>
+              <span class="sync-lbl" id="audSyncLbl">↻ Atualizar</span>
+            </button>
+            <span class="sync-msg" id="audSyncMsg" role="status" aria-live="polite"></span>
+          </span>
         </div>
         <div class="grid-wrap" id="audWrap">
           <table class="tb-aud">
@@ -2262,7 +2270,7 @@ const syncBarra = (pct) => el("syncFill").style.width = pct + "%";
 
 function syncEstado(classe, rotulo, aviso) {
   el("syncFill").className = "sync-fill " + classe;
-  el("btnSync").className = "btn ghost " + classe;
+  el("btnSync").className = "btn ghost sync-btn " + classe;
   el("syncLbl").textContent = rotulo;
   const m = el("syncMsg");
   if (aviso) { m.textContent = aviso; m.className = "sync-msg show " + classe; }
@@ -3940,6 +3948,42 @@ document.querySelectorAll("#secAuditoria th.ord").forEach((th) => th.onclick = (
   else { AUD.ordenar = campo; AUD.dir = campo === "CRIADO_EM" ? "desc" : "asc"; }
   AUD.offset = 0; AUD.animar = true; carregarAuditoria();
 });
+
+/* ── Atualizar: recarrega com os MESMOS filtros/página (não é "Limpar filtros").
+   Mesmo desenho do botão Sincronizar (Usuários), mas sem contagem pra reportar —
+   carregarAuditoria() já trata erro sozinha (linha "Tentar de novo" na tabela),
+   então aqui só existe o estado de sucesso. */
+let audSyncTimer = null, audSyncVolta = null;
+function audSyncEstado(classe, rotulo, aviso) {
+  el("audSyncFill").className = "sync-fill " + classe;
+  el("btnAudAtualizar").className = "btn ghost sync-btn " + classe;
+  el("audSyncLbl").textContent = rotulo;
+  const m = el("audSyncMsg");
+  if (aviso) { m.textContent = aviso; m.className = "sync-msg show " + classe; }
+  else m.className = "sync-msg";
+}
+function audSyncRestaurar() {
+  clearTimeout(audSyncVolta);
+  audSyncEstado("", "↻ Atualizar", null);
+  el("audSyncFill").style.width = "0%";
+  el("btnAudAtualizar").disabled = false;
+}
+el("btnAudAtualizar").onclick = async () => {
+  const b = el("btnAudAtualizar");
+  if (b.disabled) return;
+  clearTimeout(audSyncVolta); clearInterval(audSyncTimer);
+  b.disabled = true;
+  audSyncEstado("", "Atualizando…", null);
+  el("audSyncFill").style.width = "0%";
+  let p = 0;
+  audSyncTimer = setInterval(() => { p += (88 - p) * 0.14; el("audSyncFill").style.width = p + "%"; }, 130);
+  AUD.animar = true;
+  await carregarAuditoria(); // não lança — erro de rede já aparece na própria tabela
+  clearInterval(audSyncTimer);
+  audSyncEstado("ok", "Atualizado", null);
+  el("audSyncFill").style.width = "100%";
+  audSyncVolta = setTimeout(audSyncRestaurar, 1300);
+};
 
 const SCARD_VISIVEIS = 4; // telas mostradas com o card recolhido
 const linhasTela = (arr) => arr.map((p) =>
