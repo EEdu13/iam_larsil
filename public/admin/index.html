@@ -3605,7 +3605,7 @@ async function gerarSenha() {
 /* ══════════════════ AUDITORIA ══════════════════ */
 // filtros: null = coluna sem filtro (mostra tudo); Set = só os valores marcados
 const AUD = {
-  carregou: false, offset: 0, limit: 25, total: 0, ordenar: "CRIADO_EM", dir: "desc",
+  carregou: false, seq: 0, offset: 0, limit: 25, total: 0, ordenar: "CRIADO_EM", dir: "desc",
   abertos: new Set(), animar: true, filtros: { DIA: null, ACAO: null, ATOR: null, ALVO_NOME: null },
 };
 // cada funil do cabeçalho: por qual campo ordena e qual coluna de valores ele filtra
@@ -3706,9 +3706,12 @@ async function carregarAuditoria() {
   const q = paramsAud(null);
   q.set("ordenar", AUD.ordenar); q.set("dir", AUD.dir);
   q.set("limit", AUD.limit); q.set("offset", AUD.offset);
+  // respostas podem chegar fora de ordem: só a da requisição mais recente desenha a tabela
+  const seq = ++AUD.seq;
   let d;
   try { d = await api("/admin/auditoria?" + q); }
   catch (e) {
+    if (seq !== AUD.seq) return;
     wrap.classList.remove("busy");
     if (/inválido|expirado|restrito/i.test(e.message)) { limparSessao(); location.reload(); return; }
     tb.innerHTML = `<tr class="no-hover"><td colspan="5"><div class="empty">Não foi possível carregar a auditoria.<div class="hint" style="margin:6px 0 12px">${esc(e.message)}</div><button class="btn sm" id="audRetry">Tentar de novo</button></div></td></tr>`;
@@ -3716,6 +3719,7 @@ async function carregarAuditoria() {
     el("audCount").textContent = ""; el("audPag").textContent = "";
     return;
   }
+  if (seq !== AUD.seq) return;
   wrap.classList.remove("busy");
   AUD.carregou = true; AUD.total = d.total;
   tb.innerHTML = "";
@@ -3861,8 +3865,10 @@ async function abrirFx(ordCol, btn) {
 
   try {
     const q = paramsAud(col); q.set("coluna", col);
-    fxValores = (await api("/admin/auditoria/valores?" + q)).valores || [];
-  } catch (e) { el("fxLista").innerHTML = `<div class="fx-vazio">${esc(e.message)}</div>`; return; }
+    const valores = (await api("/admin/auditoria/valores?" + q)).valores || [];
+    if (fxCol !== ordCol) return; // popup fechou ou trocou de coluna enquanto carregava
+    fxValores = valores;
+  } catch (e) { if (fxCol === ordCol) el("fxLista").innerHTML = `<div class="fx-vazio">${esc(e.message)}</div>`; return; }
 
   // sem filtro na coluna = tudo marcado
   const atual = AUD.filtros[col];

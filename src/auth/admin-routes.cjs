@@ -50,6 +50,89 @@ router.get("/usuarios/:id/logs", async (req, res) => {
   } catch (e) { console.error("[logs]", e.message); res.status(500).json({ erro: "Falha ao ler logs" }); }
 });
 
+// ── Auditoria geral (aba Auditoria do console) ──
+// CRIADO_EM é gravado em UTC; dia e período seguem o calendário de Brasília, como a tela mostra.
+const TZ_BR = "E. South America Standard Time";
+const AUD_FROM = `FROM ${IAM_SCHEMA}.IAM_AUDITORIA a LEFT JOIN ${IAM_SCHEMA}.IAM_USUARIOS u ON u.ID = a.USUARIO_ID`;
+// NULL vira "" (o "(vazio)" da tela) e a mesma expressão lista e filtra — o popup mostra exatamente o que o filtro acha.
+const AUD_COLUNAS = {
+  DIA: { param: "dia", expr: `CONVERT(char(10), CONVERT(date, a.CRIADO_EM AT TIME ZONE 'UTC' AT TIME ZONE '${TZ_BR}'), 23)` },
+  ACAO: { param: "acao", expr: "a.ACAO" },
+  ATOR: { param: "ator", expr: "ISNULL(a.ATOR, '')" },
+  ALVO_NOME: { param: "alvo", expr: "ISNULL(u.NOME, '')" },
+};
+const AUD_ORDEM = { CRIADO_EM: "a.CRIADO_EM", ACAO: "a.ACAO", ATOR: "a.ATOR", ALVO_NOME: "u.NOME" };
+const reDataIso = /^\d{4}-\d{2}-\d{2}$/;
+
+// WHERE comum às duas rotas. `exceto` ignora o filtro da própria coluna (popup estilo Excel).
+function filtroAuditoria(q, rq, exceto) {
+  const onde = [];
+  const busca = String(q.busca || "").trim().slice(0, 200);
+  if (busca) {
+    rq.input("busca", sql.NVarChar(400), `%${busca.replace(/[[%_]/g, "[$&]")}%`);
+    onde.push("(a.ATOR LIKE @busca OR a.ACAO LIKE @busca OR a.DETALHE LIKE @busca OR u.NOME LIKE @busca OR u.LOGIN LIKE @busca)");
+  }
+  const de = String(q.de || ""), ate = String(q.ate || "");
+  if (reDataIso.test(de)) {
+    rq.input("de", sql.VarChar(10), de);
+    onde.push(`a.CRIADO_EM >= CONVERT(datetime2(0), CAST(TRY_CAST(@de AS date) AS datetime2(0)) AT TIME ZONE '${TZ_BR}' AT TIME ZONE 'UTC')`);
+  }
+  if (reDataIso.test(ate)) {
+    rq.input("ate", sql.VarChar(10), ate);
+    onde.push(`a.CRIADO_EM < CONVERT(datetime2(0), CAST(DATEADD(day, 1, TRY_CAST(@ate AS date)) AS datetime2(0)) AT TIME ZONE '${TZ_BR}' AT TIME ZONE 'UTC')`);
+  }
+  // lista inteira num parâmetro JSON só: filtro com centenas de pessoas não estoura o limite de 2100 parâmetros
+  for (const [col, { param, expr }] of Object.entries(AUD_COLUNAS)) {
+    if (col === exceto || q[param] === undefined) continue;
+    rq.input(`f_${param}`, sql.NVarChar(sql.MAX), JSON.stringify([].concat(q[param]).map(String)));
+    onde.push(`${expr} IN (SELECT v FROM OPENJSON(@f_${param}) WITH (v NVARCHAR(400) '$'))`);
+  }
+  return onde.length ? "WHERE " + onde.join(" AND ") : "";
+}
+
+// GET /api/admin/auditoria?busca=&de=&ate=&dia=&acao=&ator=&alvo=&ordenar=&dir=&limit=&offset=
+router.get("/auditoria", async (req, res) => {
+  try {
+    const limit = Math.min(Math.max(Number(req.query.limit) || 25, 1), 200);
+    const offset = Math.max(Number(req.query.offset) || 0, 0);
+    const ordenar = Object.hasOwn(AUD_ORDEM, req.query.ordenar) ? req.query.ordenar : "CRIADO_EM";
+    const dir = String(req.query.dir).toLowerCase() === "asc" ? "ASC" : "DESC";
+    const col = AUD_ORDEM[ordenar];
+    const desempate = ordenar === "CRIADO_EM" ? `a.ID ${dir}` : "a.ID DESC";
+
+    const pool = await getPool();
+    const rq = pool.request();
+    const where = filtroAuditoria(req.query, rq, null);
+    rq.input("limit", sql.Int, limit).input("offset", sql.Int, offset);
+    const r = await rq.query(`
+      SELECT a.ID, a.CRIADO_EM, a.ACAO, a.ATOR, a.DETALHE, a.USUARIO_ID, u.NOME AS ALVO_NOME, u.LOGIN AS ALVO_LOGIN
+        ${AUD_FROM} ${where}
+       ORDER BY CASE WHEN ${col} IS NULL THEN 1 ELSE 0 END, ${col} ${dir}, ${desempate}
+      OFFSET @offset ROWS FETCH NEXT @limit ROWS ONLY;
+      SELECT COUNT(*) AS total ${AUD_FROM} ${where};
+    `);
+    res.json({ registros: r.recordsets[0], total: r.recordsets[1][0].total, limit, offset });
+  } catch (e) { console.error("[auditoria]", e.message); res.status(500).json({ erro: "Falha ao ler a auditoria" }); }
+});
+
+// GET /api/admin/auditoria/valores?coluna=DIA|ACAO|ATOR|ALVO_NOME&<mesmos filtros>
+router.get("/auditoria/valores", async (req, res) => {
+  try {
+    const coluna = String(req.query.coluna || "");
+    if (!Object.hasOwn(AUD_COLUNAS, coluna)) return res.status(400).json({ erro: "Coluna inválida" });
+    const { expr } = AUD_COLUNAS[coluna];
+    const pool = await getPool();
+    const rq = pool.request();
+    const where = filtroAuditoria(req.query, rq, coluna);
+    const ordem = coluna === "DIA" ? "valor DESC" : "CASE WHEN valor = '' THEN 1 ELSE 0 END, valor";
+    const r = await rq.query(`
+      SELECT valor, qtd FROM (
+        SELECT ${expr} AS valor, COUNT(*) AS qtd ${AUD_FROM} ${where} GROUP BY ${expr}
+      ) t ORDER BY ${ordem}`);
+    res.json({ valores: r.recordset });
+  } catch (e) { console.error("[auditoria/valores]", e.message); res.status(500).json({ erro: "Falha ao listar os valores" }); }
+});
+
 // Catálogo para os seletores da tela (papéis, sistemas, permissões).
 router.get("/catalogo", async (_req, res) => {
   try {
