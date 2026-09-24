@@ -37,9 +37,15 @@ const config = {
   password: process.env.DB_PASSWORD,
   port: Number(process.env.DB_PORT || 1433),
   options: { encrypt: true, trustServerCertificate: false },
-  pool: { max: 5, min: 0, idleTimeoutMillis: 30000 },
+  // timeouts explícitos: nada pode ficar pendurado pra sempre (senão o login "trava" em vez de errar).
+  connectionTimeout: 15000,
+  requestTimeout: 20000,
+  pool: { max: 10, min: 0, idleTimeoutMillis: 30000 },
 };
 
+// Pool resiliente: se a conexão falhar ou cair, DESCARTA a promise e reconecta na próxima chamada.
+// Antes o pool era cacheado pra sempre — uma falha transitória (piscar de rede, Azure fechando
+// conexão ociosa, redeploy) envenenava o pool e derrubava TODA a autenticação até reiniciar o processo.
 let poolPromise = null;
 function getPool() {
   if (!config.password) {
@@ -47,7 +53,17 @@ function getPool() {
       "Sem credenciais de banco. Preencha iam_larsil/.env ou garanta o .env do timbertrack-hq."
     );
   }
-  if (!poolPromise) poolPromise = new sql.ConnectionPool(config).connect();
+  if (!poolPromise) {
+    const pool = new sql.ConnectionPool(config);
+    pool.on("error", (err) => {
+      console.error("[db] pool caiu, vai reconectar na próxima query:", err.message);
+      poolPromise = null; // erro/desconexão do pool → recria na próxima getPool()
+    });
+    poolPromise = pool.connect().catch((err) => {
+      poolPromise = null; // NÃO cacheia a promise falha → a próxima chamada tenta de novo
+      throw err;
+    });
+  }
   return poolPromise;
 }
 
