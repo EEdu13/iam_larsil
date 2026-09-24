@@ -55,7 +55,12 @@ router.post("/login", async (req, res) => {
     }
 
     const payload = await payloadDe(pool, u);
-    const token = assinar(payload);
+    // Token MAGRO para usuários GLOBAIS: o global:true já concede tudo, então não embutimos o array
+    // inteiro de permissões no JWT (era o que estourava o cookie de sistemas como o SGL-Conecta e
+    // derrubava a sessão). A lista completa continua no CORPO do login (abaixo) e no /api/auth/resolve,
+    // que é de onde os consumidores leem — o token do cookie fica pequeno. Não-globais seguem iguais.
+    const tokenPayload = payload.global ? { ...payload, permissoes: [] } : payload;
+    const token = assinar(tokenPayload);
     await auditar(pool, { usuarioId: u.ID, acao: "LOGIN_OK", ator: u.LOGIN });
 
     res.json({
