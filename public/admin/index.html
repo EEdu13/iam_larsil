@@ -3,9 +3,10 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Painel ADM Larsil · Acessos</title>
+<title>Painel ADM PlantSil · Acessos</title>
 <!-- caminho absoluto: o console é servido em /admin, e relativo quebraria sem a barra final -->
-<link rel="icon" type="image/x-icon" href="/admin/assets/favicon.ico" />
+<link rel="icon" type="image/svg+xml" href="/admin/assets/plantsil-emblema.svg" />
+<link rel="alternate icon" type="image/x-icon" href="/admin/assets/favicon.ico" />
 <script>
   // Aplica o tema ANTES da primeira pintura. Se ficasse no script do fim do body,
   // quem usa escuro veria um lampejo branco a cada carregamento.
@@ -1147,6 +1148,210 @@
     /* parado, o rastro viraria um risco solto no canto — melhor sumir e deixar a grade */
     .cometas{display:none}
   }
+  /* ══════════════════════════════════════════════════════════════════════════
+     IDENTIDADE PLANTSIL · 25 ANOS (16/11/2026)
+     Camada por cima do tema original: só redefine tokens e acrescenta peças.
+     Cores oficiais: verde #1E3D2F · dourado #B48A3C · terra #8A5A2B ·
+     sálvia #6E9C8A · creme #F4F1EA (as mesmas do Painel PCP / Portal PCP / CONECTA).
+     ══════════════════════════════════════════════════════════════════════════ */
+  :root{
+    --canvas:#f3f0e8; --card:#ffffff; --card-2:#faf8f3;
+    --line:#e4dfd3; --line-2:#efebe2; --line-h:#d3cdbf;
+    --ink:#18221d; --ink-2:#4d5850; --ink-3:#737c75;
+    --accent:#2d6a4f; --accent-d:#1e3d2f; --tint:#e5eee8; --tint-2:#f2f6f1;
+    --hd:#1e3d2f; --hd-2:#142a20;
+    --hov:#f5f2eb; --hov-2:#ebe6da; --mut:#d2ccbe; --mut-2:#b9b2a2;
+    --brd-ok:#bfd8c9; --glow-ok:rgba(45,106,79,.38);
+    --grad-a:#3a8462; --grad-b:#1e3d2f; --glow:#ece5d2;
+    --herd:#5d625a; --trilho:#e6e0d2; --flash:#4f9c77;
+    --hd-a:rgba(30,61,47,.94); --hd-2a:rgba(20,42,32,.96);
+    --malha:#9a8a62; --pulso:#b48a3c;
+    --gold:#b48a3c; --gold-l:#d9b46a; --gold-d:#7d5c22; --gold-t:#f7efdc; --brd-gold:#e6d2a6;
+    --terra:#8a5a2b; --salvia:#6e9c8a; --creme:#f4f1ea;
+    --topbar:60px;
+    --sh:0 1px 2px rgba(40,35,20,.06),0 1px 3px -1px rgba(40,35,20,.05);
+    --sh-md:0 6px 18px -6px rgba(40,35,20,.15),0 2px 6px -3px rgba(40,35,20,.08);
+    --sh-lg:0 28px 64px -20px rgba(30,40,25,.3),0 8px 22px -12px rgba(30,40,25,.16);
+  }
+  html[data-theme="dark"]{
+    --canvas:#0e1411; --card:#151d19; --card-2:#1a231f;
+    --line:#29342e; --line-2:#202924; --line-h:#36433c;
+    --ink:#ecefe9; --ink-2:#a8b2ab; --ink-3:#7b877f;
+    --accent:#2d6a4f; --accent-d:#8bcca9; --tint:#173226; --tint-2:#121c17;
+    --hd:#13261d; --hd-2:#0c1913;
+    --hov:#1f2924; --hov-2:#28332d; --mut:#3a463f; --mut-2:#4a574f;
+    --brd-ok:#2c5a45; --glow-ok:rgba(139,204,169,.38);
+    --grad-a:#367a5a; --grad-b:#1e3d2f; --glow:#1c271d;
+    --herd:#4c5650; --trilho:#26302b; --flash:#5fbf90;
+    --hd-a:rgba(19,38,29,.88); --hd-2a:rgba(12,25,19,.93);
+    --malha:#6f6340; --pulso:#d9b46a;
+    --gold:#d9b46a; --gold-l:#e8c987; --gold-d:#e3c47f; --gold-t:#2a2312; --brd-gold:#5a4822;
+    --glass:rgba(26,35,31,.6);
+  }
+  html[data-theme="dark"] .btn.pri:hover{background:#245a42}
+  html[data-theme="dark"] .senha-box{background:#1e3d2f}
+  html[data-theme="dark"] .boot-bar span{background:linear-gradient(90deg,var(--grad-a),var(--gold))}
+  .boot-bar span{background:linear-gradient(90deg,var(--grad-a),var(--gold))}
+  .rail-toggle:hover{box-shadow:0 5px 14px -3px rgba(45,106,79,.45)}
+
+  /* ── marca: topo ── */
+  .topbar{gap:16px;padding:0 22px}
+  /* fio dourado na base do topo: a assinatura dos 25 anos, sem pesar */
+  .topbar::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;pointer-events:none;
+    background:linear-gradient(90deg,transparent,var(--gold) 18%,var(--gold-l) 50%,var(--gold) 82%,transparent);opacity:.85}
+  .tb-logo{height:36px;width:auto;display:block;flex-shrink:0}
+  .topbar .brand{padding-left:16px;border-left:1px solid rgba(255,255,255,.18);font-size:15.5px;letter-spacing:-.01em}
+  .topbar .brand span{border:0;padding:3px 9px;border-radius:999px;background:rgba(217,180,106,.16);
+    color:#ecd49e;font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+
+  /* ── marca: login ── */
+  .login-logo{display:block;width:100%;max-width:236px;height:auto;margin-bottom:6px}
+  .login-aside{background:linear-gradient(168deg,#21432f 0%,var(--hd) 45%,#0f2219 100%)}
+  /* o emblema gigante e apagado no rodapé do painel — textura de marca, não informação */
+  .login-aside::before{content:"";position:absolute;right:-70px;bottom:-70px;width:250px;height:250px;
+    background:url(/admin/assets/plantsil-emblema.svg) center/contain no-repeat;opacity:.07;pointer-events:none}
+  .login-aside::after{background:radial-gradient(300px 230px at 100% -12%,rgba(180,138,60,.35),transparent 70%),
+               radial-gradient(340px 220px at 86% -6%,rgba(255,255,255,.1),transparent 66%)}
+  .login-aside h2{margin-top:22px}
+  .login-lista svg{color:var(--gold-l)}
+  .login-rodape{color:#d9b46a}
+  .login-card .eyebrow{color:var(--gold-d)}
+  @media(max-width:880px){
+    .login-logo{width:150px;margin:0}
+    .login-aside h2{display:none}
+    .login-aside::before{display:none}
+  }
+
+  /* ── marca: tela de carregamento ── */
+  .boot-mark{width:56px;height:56px;border-radius:50%;object-fit:contain;display:block}
+  .boot-ring{border-color:var(--gold-t);border-top-color:var(--gold)}
+
+  /* ── marca: navegação e títulos ── */
+  .rail-ind{background:linear-gradient(180deg,var(--gold-l),var(--gold))}
+  .page>.eyebrow{color:var(--gold-d);display:flex;align-items:center;gap:8px}
+  .page>.eyebrow::before{content:"";width:18px;height:2px;border-radius:2px;background:var(--gold)}
+  .page h2{font-size:27px;letter-spacing:-.025em}
+  .page .lead{max-width:92ch}
+
+  /* ── a página usa a tela: era 1120px e a tabela ficava com um vão enorme à direita ── */
+  .page{max-width:1520px;padding:26px 32px 60px}
+
+  /* ══ CARTÕES DE RESUMO (aba Usuários) ══
+     Cada cartão é também um filtro: clicar mostra só aquele grupo. */
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:0 0 18px}
+  .kpi{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;
+    padding:13px 15px 12px;border-radius:12px;background:var(--card);border:1px solid var(--line);box-shadow:var(--sh);
+    color:var(--ink);font:inherit;overflow:hidden;cursor:pointer;
+    transition:border-color .14s,box-shadow .14s,transform .14s,background-color .14s}
+  .kpi::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--kc,var(--accent));opacity:.9}
+  .kpi:hover{border-color:var(--line-h);box-shadow:var(--sh-md);transform:translateY(-1px)}
+  .kpi.on{border-color:var(--kc,var(--accent));box-shadow:0 0 0 1px var(--kc,var(--accent)) inset,var(--sh-md);background:var(--card-2)}
+  .kpi .k-rot{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);white-space:nowrap}
+  .kpi .k-num{font-size:26px;font-weight:800;letter-spacing:-.03em;line-height:1.1;font-variant-numeric:tabular-nums;color:var(--ink)}
+  .kpi .k-sub{font-size:11.5px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+  .kpi .k-bar{width:100%;height:4px;border-radius:999px;background:var(--line-2);margin-top:7px;overflow:hidden}
+  .kpi .k-bar i{display:block;height:100%;border-radius:999px;background:var(--kc,var(--accent));transition:width .6s var(--re)}
+  .kpi.c-ok{--kc:var(--accent)}
+  .kpi.c-ok .k-num{color:var(--accent-d)}
+  .kpi.c-warn{--kc:var(--gold)}
+  .kpi.c-mut{--kc:var(--salvia)}
+  .kpi.c-terra{--kc:var(--terra)}
+  /* alerta de verdade: só fica vermelho quando há gente desligada com acesso liberado */
+  .kpi.c-risco{--kc:var(--danger)}
+  .kpi.c-risco.tem{background:var(--danger-t);border-color:var(--brd-no)}
+  .kpi.c-risco.tem .k-num,.kpi.c-risco.tem .k-rot{color:var(--danger)}
+  .kpi.c-risco.tem::after{content:"";position:absolute;top:12px;right:12px;width:8px;height:8px;border-radius:50%;
+    background:var(--danger);animation:pulsoRisco 1.8s ease-out infinite}
+  @keyframes pulsoRisco{0%{box-shadow:0 0 0 0 var(--glow-no)}100%{box-shadow:0 0 0 9px transparent}}
+  .kpi.sk-kpi{pointer-events:none}
+
+  /* pílula do filtro rápido ativo, com ✕ para tirar */
+  .filtro-pill{display:inline-flex;align-items:center;gap:6px;padding:4px 6px 4px 11px;border-radius:999px;
+    background:var(--gold-t);border:1px solid var(--brd-gold);color:var(--gold-d);font-size:12px;font-weight:700;margin-left:auto}
+  .filtro-pill button{border:0;background:transparent;color:inherit;font-size:13px;line-height:1;padding:2px 5px;border-radius:50%}
+  .filtro-pill button:hover{background:rgba(0,0,0,.08)}
+  .filtro-pill:not(.hidden) + .count{margin-left:0}
+
+  /* atalho "/" dentro da busca (some quando há texto: ali entra o Limpar) */
+  .kbd-busca{position:absolute;right:10px;top:50%;transform:translateY(-50%);pointer-events:none;
+    font-family:var(--mono);font-size:11px;font-weight:700;color:var(--ink-3);transition:opacity .14s;
+    border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:0 6px;line-height:17px;background:var(--card-2)}
+  .search.tem .kbd-busca,.search:focus-within .kbd-busca{opacity:0}
+
+  /* ══ TABELA DE USUÁRIOS — densa e alinhada à esquerda ══
+     Centralizado, cada coluna flutuava no meio de um vão; à esquerda o olho corre a linha. */
+  #gridWrap{border-radius:12px}
+  #gridWrap thead th{text-align:left;padding:11px 16px;background:var(--card-2);font-size:10.5px;letter-spacing:.07em}
+  #secUsuarios thead th.ord::before{display:none}
+  #gridWrap tbody td{text-align:left;padding:9px 16px}
+  #gridWrap td .sk{margin-inline:0}
+  #gridWrap .c-pessoa{width:34%}
+  #gridWrap .c-doc{width:17%}
+  #gridWrap .c-ult{width:16%}
+  #gridWrap tbody tr{transition:background-color .12s}
+  /* pessoa: avatar + nome + login (o login era uma coluna inteira só para ele) */
+  .pes{display:flex;align-items:center;gap:12px;min-width:0}
+  .pes .avm{width:36px;height:36px;font-size:12.5px;box-shadow:0 0 0 2px var(--card),0 0 0 3px var(--line)}
+  .pes-txt{display:flex;flex-direction:column;min-width:0;line-height:1.25}
+  .pes-nome{font-weight:700;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .pes-login{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:12px;color:var(--ink-3)}
+  .cp-login{border:1px solid transparent;background:transparent;color:var(--ink-3);border-radius:5px;
+    width:22px;height:20px;display:inline-grid;place-items:center;padding:0;opacity:0;transition:opacity .12s,background .12s,color .12s}
+  .cp-login svg{width:12px;height:12px}
+  tr:hover .cp-login,.cp-login:focus-visible{opacity:1}
+  @media(hover:none){.cp-login{opacity:1}}
+  .cp-login:hover{background:var(--card);border-color:var(--line);color:var(--ink)}
+  .cp-login.ok{opacity:1;color:var(--accent-d);background:var(--tint);border-color:var(--brd-ok)}
+  .doc{font-family:var(--mono);font-size:12.5px;color:var(--ink-2);white-space:nowrap}
+  .doc .mat{display:inline-block;margin-left:6px;padding:0 6px;border-radius:5px;font-size:11px;font-weight:700;
+    background:var(--line-2);border:1px solid var(--line);color:var(--ink-2)}
+  .rh{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;color:var(--ink-2);white-space:nowrap}
+  .ult{display:flex;flex-direction:column;line-height:1.25;white-space:nowrap}
+  .ult b{font-size:12.5px;font-weight:600;color:var(--ink)}
+  .ult small{font-size:11px;color:var(--ink-3);font-family:var(--mono)}
+  .ult.recente b{color:var(--accent-d)}
+  .ult.nunca b{color:var(--ink-3);font-weight:500;font-style:italic}
+  /* desligado no RH mas com acesso liberado: risco — faixa vermelha à esquerda da linha */
+  #gridWrap tbody tr.risco td:first-child{box-shadow:inset 3px 0 0 var(--danger)}
+  .chip.risco{background:var(--danger-t);color:var(--danger);border-color:var(--brd-no)}
+  /* seta "abrir" que aparece no hover — indica que a linha inteira é clicável */
+  .ult-cel{display:flex;align-items:center;gap:8px}
+  .abrir-seta{width:14px;height:14px;color:var(--ink-3);opacity:0;transform:translateX(-4px);transition:opacity .14s,transform .14s;flex-shrink:0;margin-left:auto}
+  tr:hover .abrir-seta{opacity:1;transform:none}
+
+  /* modo compacto */
+  #gridWrap.compacto tbody td{padding-top:5px;padding-bottom:5px}
+  #gridWrap.compacto .pes .avm{width:26px;height:26px;font-size:10px}
+  #gridWrap.compacto .pes-txt{flex-direction:row;align-items:baseline;gap:10px}
+  #gridWrap.compacto .ult small{display:none}
+  #btnDens[aria-pressed="true"]{background:var(--tint);color:var(--accent-d)}
+
+  /* paginação: contador à esquerda, preferências à direita */
+  .pager{flex-wrap:wrap}
+  .pager-esp{flex:1}
+  .pager-pp{display:inline-flex;align-items:center;gap:8px;font-size:12px;color:var(--ink-3);font-weight:600}
+  .pager-pp .sel-btn{padding:5px 9px 5px 11px;font-size:12.5px}
+
+  /* ══ CARTÕES DE SISTEMA / PAPEL — com a cor da marca ══ */
+  .scard{position:relative;overflow:hidden;border-radius:12px;padding:20px 18px 16px}
+  .scard::before{content:"";position:absolute;left:0;right:0;top:0;height:3px;
+    background:linear-gradient(90deg,var(--accent),var(--salvia) 60%,var(--gold))}
+  .scard h3{font-size:16.5px}
+  .scard .code{display:inline-block;margin-top:3px;padding:1px 7px;border-radius:5px;background:var(--line-2);border:1px solid var(--line)}
+
+  #toast{border-left-color:var(--gold)}
+
+  @media(max-width:720px){
+    .tb-logo{height:26px}
+    .topbar .brand{display:none}
+    .page{padding:20px 16px}
+    .kpis{grid-template-columns:repeat(2,1fr)}
+    .pager-pp span{display:none}
+    #gridWrap table{min-width:760px}
+  }
+  @media (prefers-reduced-motion: reduce){
+    .kpi.c-risco.tem::after{animation:none}
+  }
 </style>
 </head>
 <body>
@@ -1223,13 +1428,13 @@
   <div class="login-wrap">
 
     <aside class="login-aside">
-      <div class="login-mark">L</div>
-      <h2>Painel ADM Larsil</h2>
+      <img class="login-logo" src="/admin/assets/plantsil-25anos-branco.svg" alt="PlantSil Florestal · 25 anos" />
+      <h2>Painel ADM</h2>
       <p class="frase">O ponto único de identidade: quem existe, o que cada um pode abrir e o registro de tudo que foi mudado.</p>
       <ul class="login-lista">
         <li>
           <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 1.8 13.3 4v3.6c0 3.2-2.2 5.6-5.3 6.6-3.1-1-5.3-3.4-5.3-6.6V4z"/><path d="m5.9 7.9 1.5 1.5 2.8-2.9"/></svg>
-          <span>Uma senha só, válida em todos os sistemas Larsil</span>
+          <span>Uma senha só, válida em todos os sistemas PlantSil</span>
         </li>
         <li>
           <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.3" y="2.5" width="11.4" height="4" rx="1.2"/><rect x="2.3" y="9.5" width="11.4" height="4" rx="1.2"/></svg>
@@ -1240,7 +1445,7 @@
           <span>Auditoria com autor, data e detalhe de cada ação</span>
         </li>
       </ul>
-      <div class="login-rodape">Acesso restrito · TI Larsil</div>
+      <div class="login-rodape">Acesso restrito · TI PlantSil</div>
     </aside>
 
     <form class="login-card" id="loginForm" novalidate>
@@ -1248,7 +1453,7 @@
         <div>
           <div class="eyebrow">Entrar</div>
           <h1>Bem-vindo</h1>
-          <div class="sub">Use suas credenciais Larsil para continuar.</div>
+          <div class="sub">Use suas credenciais PlantSil para continuar.</div>
         </div>
         <div class="tema sup" id="temaLogin" role="group" aria-label="Tema da interface">
           <span class="tema-ind" aria-hidden="true"></span>
@@ -1302,8 +1507,8 @@
 <!-- APP -->
 <div id="appView" class="hidden">
   <div class="topbar">
-    <div class="mark">L</div>
-    <div class="brand">Painel ADM Larsil<span>identidade &amp; acessos</span></div>
+    <img class="tb-logo" src="/admin/assets/plantsil-25anos-branco.svg" alt="PlantSil Florestal · 25 anos" />
+    <div class="brand">Painel ADM<span>identidade &amp; acessos</span></div>
     <div class="tema" id="tema" role="group" aria-label="Tema da interface">
       <span class="tema-ind" aria-hidden="true"></span>
       <button type="button" data-tema="claro" title="Tema claro" aria-label="Tema claro" aria-pressed="true">
@@ -1350,10 +1555,12 @@
         <span class="eyebrow">Diretório</span>
         <h2>Usuários</h2>
         <p class="lead">Crie a senha de acesso e libere as telas de cada sistema — por pessoa, uma a uma.</p>
+        <div class="kpis" id="kpis" aria-label="Resumo do diretório"></div>
         <div class="cmd">
           <div class="search">
             <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5L14 14"/></svg>
             <input class="inp" id="busca" aria-label="Buscar usuários" placeholder="Buscar por nome, login, CPF ou matrícula" />
+            <kbd class="kbd-busca" aria-hidden="true" title="Atalho: tecla /">/</kbd>
             <button type="button" class="search-x" id="buscaX" aria-label="Limpar busca" title="Limpar busca (Esc)">Limpar</button>
           </div>
           <select id="estado" class="inp filter" aria-label="Filtrar por estado">
@@ -1361,6 +1568,7 @@
             <option value="PENDENTE_CONFIGURACAO">Pendentes</option>
             <option value="ATIVO">Ativos</option>
           </select>
+          <span class="filtro-pill hidden" id="filtroPill"></span>
           <span class="count" id="count" aria-live="polite"></span>
           <span class="sync-wrap">
             <button class="btn ghost sync-btn" id="btnSync" title="Puxa novos colaboradores ativos do RH. O sistema também sincroniza sozinho a cada 6h.">
@@ -1369,17 +1577,21 @@
             </button>
             <span class="sync-msg" id="syncMsg" role="status" aria-live="polite"></span>
           </span>
+          <button class="btn ghost" id="btnExportar" title="Baixa a lista com os filtros atuais numa planilha (abre no Excel)">
+            <svg class="ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2.5v7.2M5 6.9 8 9.9l3-3"/><path d="M2.8 10.8v1.4c0 .8.6 1.3 1.3 1.3h7.8c.7 0 1.3-.5 1.3-1.3v-1.4"/></svg>
+            Exportar
+          </button>
           <button class="btn pri" id="btnNovo">+ Novo usuário</button>
         </div>
         <div class="grid-wrap" id="gridWrap">
           <table>
             <thead><tr>
-              <th class="ord" data-ord="NOME" scope="col" aria-sort="none">Nome<span class="seta" aria-hidden="true"></span></th>
-              <th class="ord" data-ord="LOGIN" scope="col" aria-sort="none">Login<span class="seta" aria-hidden="true"></span></th>
-              <th class="ord" data-ord="CPF" scope="col" aria-sort="none">CPF / Matrícula<span class="seta" aria-hidden="true"></span></th>
-              <th class="ord" data-ord="ESTADO" scope="col" aria-sort="none">Estado<span class="seta" aria-hidden="true"></span></th>
-              <th class="ord" data-ord="SENHA" scope="col" aria-sort="none">Senha<span class="seta" aria-hidden="true"></span></th>
-              <th class="ord" data-ord="ATIVO" scope="col" aria-sort="none">Ativo<span class="seta" aria-hidden="true"></span></th>
+              <th class="ord c-pessoa" data-ord="NOME" scope="col" aria-sort="none">Pessoa<span class="seta" aria-hidden="true"></span></th>
+              <th class="ord c-doc" data-ord="CPF" scope="col" aria-sort="none">CPF · Matrícula<span class="seta" aria-hidden="true"></span></th>
+              <th class="ord c-st" data-ord="ESTADO" scope="col" aria-sort="none">Acesso<span class="seta" aria-hidden="true"></span></th>
+              <th class="ord c-st" data-ord="SENHA" scope="col" aria-sort="none">Senha<span class="seta" aria-hidden="true"></span></th>
+              <th class="ord c-st" data-ord="ATIVO" scope="col" aria-sort="none">No RH<span class="seta" aria-hidden="true"></span></th>
+              <th class="ord c-ult" data-ord="ULTIMO" scope="col" aria-sort="none">Último acesso<span class="seta" aria-hidden="true"></span></th>
             </tr></thead>
             <tbody id="tbody"></tbody>
           </table>
@@ -1388,6 +1600,16 @@
           <button class="btn sm" id="prev">‹ Anterior</button>
           <button class="btn sm" id="next">Próximo ›</button>
           <span id="pag"></span>
+          <span class="pager-esp"></span>
+          <label class="pager-pp"><span>Linhas por página</span>
+            <select id="porPag" class="inp filter" aria-label="Linhas por página">
+              <option value="25">25</option><option value="50">50</option><option value="100">100</option>
+            </select>
+          </label>
+          <button class="btn sm ghost" id="btnDens" aria-pressed="false" title="Alterna entre linhas confortáveis e compactas">
+            <svg class="ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M2.5 4h11M2.5 8h11M2.5 12h11"/></svg>
+            <span id="btnDensLbl">Compacto</span>
+          </button>
         </div>
       </section>
 
@@ -1405,7 +1627,7 @@
         <div class="cards" id="papeisCards"></div>
       </section>
 
-      <section id="secAuditoria" class="page hidden" style="max-width:1320px">
+      <section id="secAuditoria" class="page hidden">
         <span class="eyebrow">Registro</span>
         <h2>Auditoria</h2>
         <p class="lead">Tudo que aconteceu na identidade — quem mexeu no acesso de quem, quando, e o que exatamente mudou. Clique numa linha para abrir o detalhe completo.</p>
@@ -1588,10 +1810,10 @@
   <div class="boot-inner">
     <div class="boot-logo">
       <div class="boot-ring"></div>
-      <div class="mark boot-mark">L</div>
+      <img class="boot-mark" src="/admin/assets/plantsil-emblema.svg" alt="" />
     </div>
-    <div class="boot-title">Painel ADM Larsil</div>
-    <div class="boot-sub">Console de identidade e acessos</div>
+    <div class="boot-title">Painel ADM PlantSil</div>
+    <div class="boot-sub">Identidade e acessos · 25 anos</div>
     <div class="boot-bar"><span id="bootFill"></span></div>
     <div class="boot-step" id="bootStep">Iniciando…</div>
   </div>
@@ -1656,9 +1878,9 @@ const repetir = (n, f) => Array.from({ length: n }, (_, i) => f(i)).join("");
 
 // tabela de usuários: as mesmas 6 colunas, para a troca não mexer em nenhuma largura
 const skTabela = (n) => repetir(n, () => `<tr class="no-hover">
-  <td class="cel-nome"><div class="nm" style="display:flex;align-items:center;gap:10px">${skCirc(30)}${sk("62%")}</div></td>
-  <td>${sk("70%")}</td><td>${sk("78%")}</td>
-  <td>${skPilula("68px")}</td><td>${skPilula("74px")}</td><td>${skCirc(9)}</td></tr>`);
+  <td><div class="pes">${skCirc(36)}<div class="pes-txt" style="flex:1">${sk("58%", 12)}${sk("32%", 9)}</div></div></td>
+  <td>${sk("80%")}</td>
+  <td>${skPilula("64px")}</td><td>${skPilula("72px")}</td><td>${sk("70px")}</td><td>${sk("60%", 12)}${sk("40%", 9)}</td></tr>`);
 
 // grupos de tela do drawer (e do painel de permissões)
 const skTelas = (grupos, linhas) => repetir(grupos, () => `<section class="grp aberto">
@@ -1905,6 +2127,7 @@ function montarSelect(nativo) {
     if (mudou) nativo.dispatchEvent(new Event("change", { bubbles: true }));
   };
   const api = { fechar, pintar };
+  nativo._sel = api; // quem muda .value por código chama nativo._sel.pintar()
 
   btn.onclick = () => (selAberto === api ? fechar() : abrir());
   pop.onclick = (e) => {
@@ -2151,7 +2374,8 @@ async function entrar() {
   renderSistemas(); renderPapeis();
   bootProgresso(0.94, "Diretório de usuários");
   animarTabela = true;
-  await carregar();
+  pintarKpis();
+  await Promise.all([carregar(), carregarResumo()]);
   bootProgresso(1, "Pronto");
 
   const resta = BOOT_MIN_MS - (performance.now() - t0);
@@ -2250,7 +2474,7 @@ function ligarLimparBusca(idCampo, idBotao, aoLimpar) {
 
 el("busca").addEventListener("input", debounce(() => { offset = 0; animarTabela = true; carregar(); }, 280));
 ligarLimparBusca("busca", "buscaX", () => { offset = 0; animarTabela = true; carregar(); });
-el("estado").onchange = () => { offset = 0; animarTabela = true; carregar(); };
+el("estado").onchange = () => { offset = 0; animarTabela = true; pintarKpis(); carregar(); };
 modernizarSelects(); // o filtro de estado, que já está no HTML
 // ORD.manter: paginar não invalida o conjunto já baixado no modo ordenado
 el("prev").onclick = () => { if (offset > 0) { offset -= limit; animarTabela = true; ORD.manter = true; carregar(); } };
@@ -2302,7 +2526,7 @@ el("btnSync").onclick = async () => {
     syncEstado("ok", "Sucesso", "Sucesso");
     syncBarra(100);
     toast(`Sincronizado com o RH: <b>${r.inseridos}</b> novo(s), ${r.atualizados} atualizado(s).`);
-    offset = 0; animarTabela = true; await carregar();
+    offset = 0; animarTabela = true; await carregar(); carregarResumo();
     syncVolta = setTimeout(syncRestaurar, 1900);
   } catch (e) {
     clearInterval(syncTimer);
@@ -2322,10 +2546,111 @@ el("nvSalvar").onclick = async () => {
     }) });
     fecharModal();
     toast(`Usuário criado: <b>${esc(nome)}</b> · login <b>${esc(r.login)}</b>. Agora gere a senha no perfil dele.`);
-    offset = 0; el("busca").value = r.login; sincBusca.busca(); await carregar();
+    offset = 0; el("busca").value = r.login; sincBusca.busca(); await carregar(); carregarResumo();
   } catch (e) { el("nvErr").textContent = e.message || "Falha ao criar."; }
   finally { b.classList.remove("loading"); b.disabled = false; }
 };
+
+/* ── Cartões de resumo + filtro rápido ──
+   Cada cartão é um atalho de filtro. RAPIDO vai para o servidor (?rapido=), e o
+   filtro de estado continua sendo o <select> de sempre — o cartão só o ajusta. */
+let RAPIDO = "";
+let RESUMO = null;
+const KPIS = [
+  { k: "total",       rot: "Pessoas",            cor: "c-mut",   estado: "", rapido: "",
+    sub: (r) => r.novos ? `+${r.novos} nos últimos 7 dias` : "no diretório" },
+  { k: "com_acesso",  rot: "Com acesso",         cor: "c-ok",    estado: "ATIVO", rapido: "", barra: true,
+    sub: (r) => r.total ? `${Math.round(r.com_acesso / r.total * 100)}% do diretório` : "" },
+  { k: "pendentes",   rot: "Pendentes",          cor: "c-warn",  estado: "PENDENTE_CONFIGURACAO", rapido: "",
+    sub: () => "sem acesso configurado" },
+  { k: "sem_senha",   rot: "Sem senha",          cor: "c-mut",   estado: "", rapido: "sem_senha",
+    sub: () => "ainda não podem entrar" },
+  { k: "provisoria",  rot: "Senha provisória",   cor: "c-terra", estado: "", rapido: "provisoria",
+    sub: () => "não trocaram a senha" },
+  { k: "logins_hoje", rot: "Entraram hoje",      cor: "c-ok",    estado: "", rapido: "hoje",
+    sub: () => "login feito hoje" },
+  { k: "risco",       rot: "Desligados c/ acesso", cor: "c-risco", estado: "", rapido: "risco",
+    sub: (r) => r.risco ? "saíram e seguem liberados" : "nenhum — tudo certo" },
+];
+const ROTULO_RAPIDO = { sem_senha: "Sem senha", provisoria: "Senha provisória", hoje: "Entraram hoje",
+  risco: "Desligados com acesso", desligados: "Desligados no RH", novos: "Novos (7 dias)" };
+const fmtNum = (n) => Number(n || 0).toLocaleString("pt-BR");
+
+function kpiAtivo(c) {
+  return el("estado").value === c.estado && RAPIDO === c.rapido;
+}
+function pintarKpis() {
+  const box = el("kpis");
+  if (!RESUMO) {
+    box.innerHTML = repetir(KPIS.length, () => `<div class="kpi sk-kpi">${sk("60%", 10)}${sk("44%", 24, "margin-top:6px")}${sk("80%", 9, "margin-top:6px")}</div>`);
+    return;
+  }
+  box.innerHTML = KPIS.map((c, i) => {
+    const v = RESUMO[c.k] || 0;
+    const pct = c.barra && RESUMO.total ? Math.round(v / RESUMO.total * 100) : 0;
+    const cls = ["kpi", c.cor, kpiAtivo(c) ? "on" : "", c.k === "risco" && v ? "tem" : ""].join(" ");
+    return `<button type="button" class="${cls}" data-kpi="${i}" aria-pressed="${kpiAtivo(c)}"
+        title="${c.k === "total" ? "Mostrar todo mundo" : "Filtrar: " + esc(c.rot)}">
+      <span class="k-rot">${esc(c.rot)}</span>
+      <span class="k-num">${fmtNum(v)}</span>
+      <span class="k-sub">${esc(c.sub(RESUMO))}</span>
+      ${c.barra ? `<span class="k-bar"><i style="width:${pct}%"></i></span>` : ""}
+    </button>`;
+  }).join("");
+  box.querySelectorAll("[data-kpi]").forEach((b) => b.onclick = () => {
+    const c = KPIS[Number(b.dataset.kpi)];
+    // clicar no cartão já ativo desliga o filtro (volta para "todos")
+    const desligar = kpiAtivo(c) && c.k !== "total";
+    aplicarFiltroRapido(desligar ? "" : c.estado, desligar ? "" : c.rapido);
+  });
+}
+function aplicarFiltroRapido(estado, rapido) {
+  const sel = el("estado");
+  sel.value = estado;
+  if (sel._sel) sel._sel.pintar();
+  RAPIDO = rapido;
+  pintarFiltroPill();
+  pintarKpis();
+  offset = 0; animarTabela = true; carregar();
+}
+function pintarFiltroPill() {
+  const pill = el("filtroPill");
+  if (!RAPIDO) { pill.classList.add("hidden"); pill.innerHTML = ""; return; }
+  pill.classList.remove("hidden");
+  pill.innerHTML = `${esc(ROTULO_RAPIDO[RAPIDO] || RAPIDO)}<button type="button" aria-label="Tirar filtro" title="Tirar filtro">✕</button>`;
+  pill.querySelector("button").onclick = () => aplicarFiltroRapido(el("estado").value, "");
+}
+async function carregarResumo() {
+  try { RESUMO = await api("/admin/resumo"); }
+  catch (e) { console.warn("[resumo]", e.message); RESUMO = RESUMO || null; }
+  if (RESUMO) pintarKpis();
+  else el("kpis").innerHTML = "";
+}
+
+/* ── Tempo relativo para "Último acesso" (relógio de Brasília no detalhe) ── */
+const FMT_DT_CURTA = new Intl.DateTimeFormat("pt-BR", { timeZone: "America/Sao_Paulo", day: "2-digit", month: "2-digit", year: "2-digit", hour: "2-digit", minute: "2-digit" });
+const FMT_DIA_BR = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo" }); // AAAA-MM-DD
+function quandoFoi(iso) {
+  if (!iso) return { txt: "Nunca entrou", det: "", cls: "nunca" };
+  const d = new Date(iso);
+  if (isNaN(d)) return { txt: "—", det: "", cls: "" };
+  const seg = (Date.now() - d.getTime()) / 1000;
+  const det = FMT_DT_CURTA.format(d).replace(",", "");
+  const hoje = FMT_DIA_BR.format(new Date()), dia = FMT_DIA_BR.format(d);
+  const ontem = FMT_DIA_BR.format(new Date(Date.now() - 864e5));
+  let txt;
+  if (seg < 90) txt = "Agora há pouco";
+  else if (seg < 3600) txt = `Há ${Math.round(seg / 60)} min`;
+  else if (dia === hoje) txt = `Hoje, há ${Math.round(seg / 3600)} h`;
+  else if (dia === ontem) txt = "Ontem";
+  else if (seg < 30 * 864e2) { const n = Math.max(2, Math.round(seg / 864e2)); txt = `Há ${n} dias`; }
+  else if (seg < 365 * 864e2) { const n = Math.max(1, Math.round(seg / (30 * 864e2))); txt = n === 1 ? "Há 1 mês" : `Há ${n} meses`; }
+  else txt = "Há mais de 1 ano";
+  return { txt, det, cls: seg < 864e2 ? "recente" : "" };
+}
+const fmtCpf = (c) => { const d = String(c || "").replace(/\D/g, ""); return d.length === 11 ? d.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4") : (c || ""); };
+const ICO_CP_LOGIN = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5.5" y="5.5" width="8" height="8" rx="1.6"/><path d="M10.5 5.5V3.6c0-.6-.5-1.1-1.1-1.1H3.6c-.6 0-1.1.5-1.1 1.1v5.8c0 .6.5 1.1 1.1 1.1h1.9"/></svg>';
+const ICO_SETA = '<svg class="abrir-seta" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5 10.5 8 6 12.5"/></svg>';
 
 const estadoChip = (u) => u.ESTADO === "ATIVO" ? '<span class="chip ok">Ativo</span>' : '<span class="chip warn">Pendente</span>';
 const senhaChip = (u) => !u.TEM_SENHA ? '<span class="chip mut">Sem senha</span>' : (u.SENHA_PROVISORIA ? '<span class="chip warn">Provisória</span>' : '<span class="chip ok">Definida</span>');
@@ -2345,6 +2670,7 @@ const CHAVE_ORD = {
   ESTADO: (u) => u.ESTADO || "",
   SENHA: (u) => (!u.TEM_SENHA ? 0 : u.SENHA_PROVISORIA ? 1 : 2), // sem < provisória < definida
   ATIVO: (u) => (u.ATIVO ? 1 : 0),
+  ULTIMO: (u) => (u.ULTIMO_LOGIN ? new Date(u.ULTIMO_LOGIN).getTime() : 0),
 };
 const ORD = { col: null, dir: 1, cache: null, chave: "", manter: false };
 
@@ -2378,6 +2704,13 @@ document.querySelectorAll("#secUsuarios thead th.ord").forEach((th) => th.onclic
   offset = 0; animarTabela = true; ORD.manter = true; carregar();
 });
 
+const filtrosAtuais = () => {
+  const f = { busca: el("busca").value, estado: el("estado").value };
+  if (RAPIDO) f.rapido = RAPIDO;
+  return f;
+};
+const assinaturaDe = (f) => [f.busca, f.estado, f.rapido || ""].join("\u0000");
+
 async function carregar() {
   const tb = el("tbody"), wrap = el("gridWrap");
   // 1ª carga: placeholder no lugar da tabela vazia. Recarga: esmaece o que já está na tela.
@@ -2388,8 +2721,8 @@ async function carregar() {
   if (!ORD.manter) ORD.cache = null;
   ORD.manter = false;
 
-  const filtros = { busca: el("busca").value, estado: el("estado").value };
-  const assinatura = filtros.busca + " " + filtros.estado;
+  const filtros = filtrosAtuais();
+  const assinatura = assinaturaDe(filtros);
   let d;
   try {
     if (ORD.col) {
@@ -2420,7 +2753,7 @@ async function carregar() {
   total = d.total;
   tb.innerHTML = "";
   if (!d.usuarios.length) {
-    const filtrando = el("busca").value.trim() || el("estado").value;
+    const filtrando = el("busca").value.trim() || el("estado").value || RAPIDO;
     tb.innerHTML = linhaEstado(filtrando
       ? 'Nenhum usuário encontrado com esses filtros.<div class="hint" style="margin-top:6px">Tente outro termo ou limpe o filtro de estado.</div>'
       : "Nenhum usuário cadastrado ainda.");
@@ -2432,21 +2765,113 @@ async function carregar() {
     tr.tabIndex = 0;
     tr.setAttribute("role", "button");
     tr.setAttribute("aria-label", `Abrir acessos de ${u.NOME}`);
+    const risco = !u.ATIVO && u.ESTADO === "ATIVO";
+    if (risco) tr.classList.add("risco");
+    const q = quandoFoi(u.ULTIMO_LOGIN);
     tr.innerHTML = `
-      <td class="cel-nome"><div class="nm" style="display:flex;align-items:center;gap:10px">${avatarMini(u.NOME)}<span>${esc(u.NOME)}</span></div></td>
-      <td><span class="mono" style="color:var(--ink-2)">${esc(u.LOGIN)}</span></td>
-      <td class="sub2">${esc(u.CPF) || "—"}${u.MATRICULA ? " · " + esc(u.MATRICULA) : ""}</td>
-      <td>${estadoChip(u)}</td><td>${senhaChip(u)}</td>
-      <td>${u.ATIVO ? '<span class="node on"></span>' : '<span class="chip no">Não</span>'}</td>`;
+      <td><div class="pes">${avatarMini(u.NOME)}<span class="pes-txt">
+        <span class="pes-nome" title="${esc(u.NOME)}">${esc(u.NOME)}</span>
+        <span class="pes-login">${esc(u.LOGIN)}<button type="button" class="cp-login" data-login="${esc(u.LOGIN)}" title="Copiar login" aria-label="Copiar login ${esc(u.LOGIN)}">${ICO_CP_LOGIN}</button></span>
+      </span></div></td>
+      <td><span class="doc">${u.CPF ? esc(fmtCpf(u.CPF)) : "—"}${u.MATRICULA ? `<span class="mat" title="Matrícula">${esc(u.MATRICULA)}</span>` : ""}</span></td>
+      <td>${risco ? '<span class="chip risco" title="Desligado no RH, mas o acesso continua liberado">Ativo · revisar</span>' : estadoChip(u)}</td>
+      <td>${senhaChip(u)}</td>
+      <td>${u.ATIVO ? '<span class="rh"><span class="node on"></span>Trabalhando</span>' : '<span class="chip no">Desligado</span>'}</td>
+      <td><div class="ult-cel"><span class="ult ${q.cls}"><b>${esc(q.txt)}</b>${q.det ? `<small>${esc(q.det)}</small>` : ""}</span>${ICO_SETA}</div></td>`;
+    tr.querySelector(".cp-login").onclick = (e) => { e.stopPropagation(); copiarLogin(e.currentTarget); };
     tr.onclick = () => abrir(u.ID);
     tr.onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); abrir(u.ID); } };
     tb.appendChild(tr);
   }
   if (animarTabela) { animarTabela = false; cascata(tb); }
-  el("count").textContent = total + " registro(s)";
+  el("count").textContent = fmtNum(total) + (total === 1 ? " pessoa" : " pessoas");
   el("pag").textContent = total ? `${offset + 1}–${Math.min(offset + limit, total)} de ${total}` : "0";
   el("prev").disabled = offset === 0; el("next").disabled = offset + limit >= total;
 }
+
+/* ── Copiar login direto da linha ── */
+async function copiarLogin(b) {
+  const v = b.dataset.login;
+  try { await navigator.clipboard.writeText(v); }
+  catch { toast("Não deu para copiar automaticamente. Login: <b>" + esc(v) + "</b>"); return; }
+  b.classList.add("ok");
+  b.innerHTML = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3.5 8.4 2.8 2.8 6.2-6.4"/></svg>';
+  setTimeout(() => { b.classList.remove("ok"); b.innerHTML = ICO_CP_LOGIN; }, 1400);
+}
+
+/* ── Exportar a lista filtrada (CSV com ; e BOM: abre certo no Excel em português) ── */
+el("btnExportar").onclick = async () => {
+  const b = el("btnExportar");
+  carregando(b);
+  try {
+    const f = filtrosAtuais();
+    const todos = await usuariosCompletos(f, assinaturaDe(f));
+    ORD.manter = true; // o conjunto baixado serve para a ordenação também
+    const cab = ["NOME", "LOGIN", "CPF", "MATRICULA", "EMAIL", "ACESSO", "SENHA", "RH", "ULTIMO ACESSO", "CADASTRO"];
+    const celula = (v) => {
+      const t = String(v == null ? "" : v);
+      return /[;"\n\r]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t;
+    };
+    const dataBR = (iso) => iso ? FMT_DT_CURTA.format(new Date(iso)).replace(",", "") : "";
+    const linhas = todos.map((u) => [
+      u.NOME, u.LOGIN, fmtCpf(u.CPF), u.MATRICULA, u.EMAIL,
+      u.ESTADO === "ATIVO" ? "ATIVO" : "PENDENTE",
+      !u.TEM_SENHA ? "SEM SENHA" : u.SENHA_PROVISORIA ? "PROVISORIA" : "DEFINIDA",
+      u.ATIVO ? "TRABALHANDO" : "DESLIGADO",
+      u.ULTIMO_LOGIN ? dataBR(u.ULTIMO_LOGIN) : "NUNCA", dataBR(u.CRIADO_EM),
+    ].map(celula).join(";"));
+    const csv = "﻿" + [cab.join(";"), ...linhas].join("\r\n");
+    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+    const a = document.createElement("a");
+    const sufixo = RAPIDO ? "-" + RAPIDO.replace(/_/g, "-") : (f.estado ? "-" + f.estado.toLowerCase().split("_")[0] : "");
+    a.href = url; a.download = `usuarios-iam${sufixo}-${FMT_DIA_BR.format(new Date())}.csv`;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+    toast(`Planilha gerada com <b>${fmtNum(todos.length)}</b> pessoa(s).`);
+  } catch (e) {
+    toast("Não foi possível exportar: " + esc(e.message));
+  } finally { b.classList.remove("loading"); b.disabled = false; }
+};
+
+/* ── Atalhos: "/" ou Ctrl+K vão para a busca de usuários ── */
+document.addEventListener("keydown", (e) => {
+  if (el("appView").classList.contains("hidden")) return;
+  const alvo = e.target;
+  const digitando = alvo && (alvo.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(alvo.tagName));
+  const atalhoK = (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k";
+  if (!atalhoK && (e.key !== "/" || digitando || e.ctrlKey || e.metaKey || e.altKey)) return;
+  // com gaveta, painel ou modal aberto o atalho não rouba o foco de quem está lá
+  if (modalAberto || document.querySelector(".drawer.show, .sd.show")) return;
+  e.preventDefault();
+  irParaSecao("usuarios");
+  const b = el("busca"); b.focus(); b.select();
+});
+
+/* ── Densidade da tabela e linhas por página (ficam salvas neste navegador) ── */
+function aplicarDensidade(compacto) {
+  el("gridWrap").classList.toggle("compacto", compacto);
+  el("btnDens").setAttribute("aria-pressed", String(compacto));
+  el("btnDensLbl").textContent = compacto ? "Confortável" : "Compacto";
+}
+el("btnDens").onclick = () => {
+  const novo = !el("gridWrap").classList.contains("compacto");
+  try { localStorage.setItem("iam_densidade", novo ? "compacto" : "normal"); } catch {}
+  aplicarDensidade(novo);
+};
+(function () {
+  let dens = null, pp = null;
+  try { dens = localStorage.getItem("iam_densidade"); pp = Number(localStorage.getItem("iam_porpag")); } catch {}
+  aplicarDensidade(dens === "compacto");
+  if ([25, 50, 100].includes(pp)) {
+    limit = pp; el("porPag").value = String(pp);
+    if (el("porPag")._sel) el("porPag")._sel.pintar();
+  }
+})();
+el("porPag").onchange = () => {
+  limit = Number(el("porPag").value) || 25;
+  try { localStorage.setItem("iam_porpag", String(limit)); } catch {}
+  offset = 0; animarTabela = true; ORD.manter = true; carregar();
+};
 
 /* ── DRAWER ── */
 el("dwClose").onclick = fechar; el("scrim").onclick = fechar;

@@ -408,7 +408,36 @@ router.post("/usuarios/:id/treinamento", async (req, res) => {
   } catch (e) { console.error("[treino]", e.message); res.status(500).json({ erro: "Falha no treinamento" }); }
 });
 
-// GET /api/admin/usuarios?busca=&estado=&limit=&offset=
+// GET /api/admin/resumo — números dos cartões do topo da aba Usuários (só leitura).
+// "Hoje" segue o calendário de Brasília, como o resto da tela.
+router.get("/resumo", async (_req, res) => {
+  try {
+    const pool = await getPool();
+    const r = await pool.request().query(`
+      SELECT COUNT(*) AS total,
+             SUM(CASE WHEN ESTADO = 'ATIVO' THEN 1 ELSE 0 END) AS com_acesso,
+             SUM(CASE WHEN ESTADO = 'PENDENTE_CONFIGURACAO' THEN 1 ELSE 0 END) AS pendentes,
+             SUM(CASE WHEN SENHA_HASH IS NULL THEN 1 ELSE 0 END) AS sem_senha,
+             SUM(CASE WHEN SENHA_HASH IS NOT NULL AND SENHA_PROVISORIA = 1 THEN 1 ELSE 0 END) AS provisoria,
+             SUM(CASE WHEN ATIVO = 0 THEN 1 ELSE 0 END) AS desligados,
+             SUM(CASE WHEN ATIVO = 0 AND ESTADO = 'ATIVO' THEN 1 ELSE 0 END) AS risco,
+             SUM(CASE WHEN CRIADO_EM >= DATEADD(day, -7, SYSUTCDATETIME()) THEN 1 ELSE 0 END) AS novos
+        FROM ${IAM_SCHEMA}.IAM_USUARIOS;
+
+      SELECT COUNT(DISTINCT USUARIO_ID) AS logins_hoje
+        FROM ${IAM_SCHEMA}.IAM_AUDITORIA
+       WHERE ACAO = 'LOGIN_OK'
+         AND CONVERT(date, CRIADO_EM AT TIME ZONE 'UTC' AT TIME ZONE '${TZ_BR}')
+           = CONVERT(date, SYSUTCDATETIME() AT TIME ZONE 'UTC' AT TIME ZONE '${TZ_BR}');
+    `);
+    res.json({ ...r.recordsets[0][0], ...r.recordsets[1][0] });
+  } catch (e) {
+    console.error("[resumo]", e.message);
+    res.status(500).json({ erro: "Falha ao montar o resumo" });
+  }
+});
+
+// GET /api/admin/usuarios?busca=&estado=&rapido=&limit=&offset=
 router.get("/usuarios", async (req, res) => {
   try {
     const busca = String(req.query.busca || "").trim();
@@ -427,20 +456,39 @@ router.get("/usuarios", async (req, res) => {
       rq.input("estado", sql.VarChar(30), estado);
       wheres.push("ESTADO = @estado");
     }
+    // Filtros rápidos do console (chips). Valores fechados: o que não estiver na lista é ignorado.
+    const FILTRO_RAPIDO = {
+      sem_senha: "SENHA_HASH IS NULL",
+      provisoria: "SENHA_HASH IS NOT NULL AND SENHA_PROVISORIA = 1",
+      desligados: "ATIVO = 0",
+      risco: "ATIVO = 0 AND ESTADO = 'ATIVO'", // saiu da empresa mas o acesso segue liberado
+      novos: "CRIADO_EM >= DATEADD(day, -7, SYSUTCDATETIME())",
+      // u.ID qualificado: dentro do EXISTS um ID solto seria o da auditoria
+      hoje: `EXISTS (SELECT 1 FROM ${IAM_SCHEMA}.IAM_AUDITORIA a
+                      WHERE a.USUARIO_ID = u.ID AND a.ACAO = 'LOGIN_OK'
+                        AND CONVERT(date, a.CRIADO_EM AT TIME ZONE 'UTC' AT TIME ZONE '${TZ_BR}')
+                          = CONVERT(date, SYSUTCDATETIME() AT TIME ZONE 'UTC' AT TIME ZONE '${TZ_BR}'))`,
+    };
+    const rapido = FILTRO_RAPIDO[String(req.query.rapido || "")];
+    if (rapido) wheres.push(`(${rapido})`);
     const whereSql = wheres.length ? "WHERE " + wheres.join(" AND ") : "";
     rq.input("limit", sql.Int, limit);
     rq.input("offset", sql.Int, offset);
 
+    // ULTIMO_LOGIN: último LOGIN_OK na auditoria (índice por USUARIO_ID; ~20k linhas no total).
     const r = await rq.query(`
-      SELECT ID, LOGIN, NOME, CPF, MATRICULA, EMAIL, ESTADO, ATIVO,
-             CASE WHEN SENHA_HASH IS NULL THEN 0 ELSE 1 END AS TEM_SENHA,
-             SENHA_PROVISORIA, CRIADO_EM
-      FROM ${IAM_SCHEMA}.IAM_USUARIOS
+      SELECT u.ID, u.LOGIN, u.NOME, u.CPF, u.MATRICULA, u.EMAIL, u.ESTADO, u.ATIVO,
+             CASE WHEN u.SENHA_HASH IS NULL THEN 0 ELSE 1 END AS TEM_SENHA,
+             u.SENHA_PROVISORIA, u.CRIADO_EM, ul.ULTIMO_LOGIN
+      FROM ${IAM_SCHEMA}.IAM_USUARIOS u
+      OUTER APPLY (SELECT MAX(a.CRIADO_EM) AS ULTIMO_LOGIN
+                     FROM ${IAM_SCHEMA}.IAM_AUDITORIA a
+                    WHERE a.USUARIO_ID = u.ID AND a.ACAO = 'LOGIN_OK') ul
       ${whereSql}
-      ORDER BY NOME
+      ORDER BY u.NOME
       OFFSET @offset ROWS FETCH NEXT @limit ROWS ONLY;
 
-      SELECT COUNT(*) AS total FROM ${IAM_SCHEMA}.IAM_USUARIOS ${whereSql};
+      SELECT COUNT(*) AS total FROM ${IAM_SCHEMA}.IAM_USUARIOS u ${whereSql};
     `);
     res.json({ usuarios: r.recordsets[0], total: r.recordsets[1][0].total, limit, offset });
   } catch (e) {
