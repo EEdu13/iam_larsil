@@ -1433,6 +1433,40 @@
   @media (prefers-reduced-motion: reduce){
     .lx-luz,.lx-chamada h1 em,.lx-placa,.lx-chamada,.lx-cartao{animation:none}
   }
+  /* ══ SELETOR DE SISTEMA EM LISTA (gaveta do usuário → Acessos) ══ */
+  .sispick{border:1px solid var(--line);border-radius:12px;background:var(--card);box-shadow:var(--sh);overflow:hidden;margin-bottom:14px}
+  .sp-top{display:flex;gap:8px;align-items:center;padding:10px;border-bottom:1px solid var(--line-2);background:var(--card-2)}
+  .sp-busca{position:relative;flex:1;min-width:0}
+  .sp-busca svg{position:absolute;left:11px;top:50%;width:15px;height:15px;transform:translateY(-50%);color:var(--ink-3);pointer-events:none}
+  .sp-busca .inp{padding:9px 10px 9px 34px;font-size:13.5px}
+  .sp-filtros{display:inline-flex;padding:3px;gap:2px;border-radius:9px;background:var(--line-2);border:1px solid var(--line);flex-shrink:0}
+  .sp-filtros button{border:0;background:transparent;padding:6px 10px;border-radius:7px;font-size:12px;font-weight:700;color:var(--ink-2);white-space:nowrap}
+  .sp-filtros button .q{font-weight:600;color:var(--ink-3);margin-left:2px}
+  .sp-filtros button.on{background:var(--card);color:var(--accent-d);box-shadow:var(--sh)}
+  .sp-lista{max-height:min(300px,38vh);overflow:auto;overscroll-behavior:contain;padding:4px}
+  .sp-sep{padding:8px 10px 4px;font-size:10.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--gold-d)}
+  .sp-item{width:100%;display:flex;align-items:center;gap:11px;padding:8px 10px;border:0;border-radius:8px;background:transparent;text-align:left;color:var(--ink);
+    transition:background-color .1s}
+  .sp-item:hover,.sp-item:focus-visible{background:var(--hov)}
+  .sp-item.on{background:var(--tint);box-shadow:inset 3px 0 0 var(--accent)}
+  .sp-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;background:var(--mut);box-shadow:0 0 0 3px var(--line-2)}
+  .sp-item.parcial .sp-dot{background:var(--gold);box-shadow:0 0 0 3px var(--gold-t)}
+  .sp-item.cheio .sp-dot{background:var(--accent);box-shadow:0 0 0 3px var(--tint)}
+  .sp-nome{flex:1;min-width:0;font-size:13.5px;font-weight:600;line-height:1.3;overflow:hidden;text-overflow:ellipsis}
+  .sp-nome small{display:block;font-family:var(--mono);font-size:10.5px;font-weight:500;color:var(--ink-3)}
+  .sp-nome mark{background:var(--gold-t);color:inherit;border-radius:3px;padding:0 1px;box-shadow:0 0 0 1px var(--brd-gold)}
+  .sp-qtd{display:flex;flex-direction:column;align-items:flex-end;gap:4px;font-size:11.5px;color:var(--ink-3);font-variant-numeric:tabular-nums;flex-shrink:0}
+  .sp-qtd b{color:var(--ink);font-size:12.5px}
+  .sp-item.cheio .sp-qtd b{color:var(--accent-d)}
+  .sp-barra{width:54px;height:4px;border-radius:999px;background:var(--line-2);overflow:hidden}
+  .sp-barra i{display:block;height:100%;border-radius:999px;background:var(--accent)}
+  .sp-item.parcial .sp-barra i{background:var(--gold)}
+  .sp-vazio{padding:22px 10px;text-align:center;font-size:12.5px;color:var(--ink-3)}
+  .sp-atual{display:flex;align-items:baseline;flex-wrap:wrap;gap:8px;margin:0 0 10px;padding:0 2px}
+  .sp-atual .sp-rot{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3)}
+  .sp-atual b{font-size:16px;letter-spacing:-.01em}
+  .sp-atual .sp-cod{font-family:var(--mono);font-size:11px;color:var(--ink-3);padding:0 6px;border:1px solid var(--line);border-radius:5px;background:var(--line-2)}
+  .sp-atual .sp-cont{margin-left:auto;font-size:12px;font-weight:700;color:var(--accent-d)}
 </style>
 </head>
 <body>
@@ -3966,21 +4000,110 @@ function renderAcessos() {
   el("dwBody").innerHTML = `
     <p class="hint" style="margin:0 0 12px">Escolha o sistema e libere por tela ou por grupo inteiro.
       <b>Herdado</b> segue o papel · <b>Liberar</b> concede · <b>Negar</b> tira, mesmo que o papel dê.</p>
-    <div class="sysbar" id="sysbar"></div>
+    <div class="sispick">
+      <div class="sp-top">
+        <div class="sp-busca">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5L14 14"/></svg>
+          <input class="inp" id="sisBusca" placeholder="Buscar sistema pelo nome ou código…" autocomplete="off" spellcheck="false" aria-label="Buscar sistema" />
+        </div>
+        <div class="sp-filtros" role="group" aria-label="Quais sistemas mostrar">
+          <button type="button" data-spf="todos">Todos</button>
+          <button type="button" data-spf="com">Com acesso</button>
+        </div>
+      </div>
+      <div class="sp-lista" id="sysbar" role="listbox" aria-label="Sistemas"></div>
+    </div>
+    <div class="sp-atual" id="sisAtual"></div>
     <div class="row" id="sysBulk" style="margin:-2px 0 12px;gap:6px"></div>
     <div id="telasWrap"></div>`;
+  const busca = el("sisBusca");
+  busca.value = SIS_BUSCA;
+  busca.oninput = () => { SIS_BUSCA = busca.value; pintarListaSis(); };
+  busca.onkeydown = (e) => {
+    if (e.key === "Escape" && busca.value) { e.preventDefault(); e.stopPropagation(); busca.value = SIS_BUSCA = ""; pintarListaSis(); }
+    else if (e.key === "Enter" || e.key === "ArrowDown") {
+      const primeiro = el("sysbar").querySelector(".sp-item");
+      if (!primeiro) return;
+      e.preventDefault();
+      if (e.key === "Enter") primeiro.click(); else primeiro.focus();
+    }
+  };
+  el("dwBody").querySelectorAll("[data-spf]").forEach((b) => b.onclick = () => { SIS_FILTRO = b.dataset.spf; pintarListaSis(); });
   renderSysbar();
+}
+
+/* ── Seletor de sistema: lista pesquisável (eram ~35 pílulas soltas, difícil de achar) ──
+   Busca sem acento, por nome ou código. Quem a pessoa já usa vem primeiro. */
+let SIS_BUSCA = "", SIS_FILTRO = "todos";
+function dadosSis() {
+  const efetivas = new Set(dDet.efetivas || []);
+  const permsPorSis = {}; (CAT.permissoes || []).forEach((p) => (permsPorSis[p.SISTEMA_CODIGO] ||= []).push(p));
+  const lista = CAT.sistemas.filter((s) => permsPorSis[s.CODIGO]).map((s) => {
+    const perms = permsPorSis[s.CODIGO];
+    return { s, perms, on: perms.filter((p) => efetivas.has(p.CODIGO)).length };
+  });
+  return { efetivas, permsPorSis, lista };
+}
+function pintarListaSis() {
+  const { lista } = dadosSis();
+  const q = semAcento(SIS_BUSCA.trim());
+  el("dwBody").querySelectorAll("[data-spf]").forEach((b) => {
+    const n = b.dataset.spf === "com" ? lista.filter((x) => x.on).length : lista.length;
+    b.classList.toggle("on", b.dataset.spf === SIS_FILTRO);
+    b.setAttribute("aria-pressed", String(b.dataset.spf === SIS_FILTRO));
+    b.innerHTML = `${b.dataset.spf === "com" ? "Com acesso" : "Todos"} <span class="q">${n}</span>`;
+  });
+  const vis = lista
+    .filter((x) => SIS_FILTRO !== "com" || x.on)
+    .filter((x) => !q || semAcento(x.s.NOME).includes(q) || semAcento(x.s.CODIGO).includes(q))
+    .sort((a, b) => (b.on > 0) - (a.on > 0) || a.s.NOME.localeCompare(b.s.NOME, "pt-BR"));
+  const box = el("sysbar");
+  if (!vis.length) {
+    box.innerHTML = `<div class="sp-vazio">Nenhum sistema ${q ? `com “${esc(SIS_BUSCA.trim())}”` : "com acesso liberado"}.</div>`;
+    return;
+  }
+  // marca onde a busca bateu no nome
+  const realce = (nome) => {
+    if (!q) return esc(nome);
+    const i = semAcento(nome).indexOf(q);
+    return i < 0 ? esc(nome) : esc(nome.slice(0, i)) + "<mark>" + esc(nome.slice(i, i + q.length)) + "</mark>" + esc(nome.slice(i + q.length));
+  };
+  let separou = false;
+  box.innerHTML = vis.map((x, i) => {
+    const pct = Math.round(x.on / x.perms.length * 100);
+    const sep = !q && SIS_FILTRO === "todos" && !x.on && !separou && i > 0 ? (separou = true, '<div class="sp-sep">Sem acesso</div>') : "";
+    const topo = !q && SIS_FILTRO === "todos" && i === 0 && x.on ? '<div class="sp-sep">Com acesso</div>' : "";
+    const estado = x.on === x.perms.length ? "cheio" : x.on ? "parcial" : "";
+    return `${topo}${sep}<button type="button" class="sp-item ${estado} ${x.s.CODIGO === selSis ? "on" : ""}" role="option"
+        aria-selected="${x.s.CODIGO === selSis}" data-sis="${esc(x.s.CODIGO)}">
+      <span class="sp-dot" aria-hidden="true"></span>
+      <span class="sp-nome">${realce(x.s.NOME)}<small>${esc(x.s.CODIGO)}${x.s.EXIGE_TREINAMENTO ? " · exige treinamento" : ""}</small></span>
+      <span class="sp-qtd"><span class="sp-num"><b>${x.on}</b>/${x.perms.length}</span><span class="sp-barra"><i style="width:${pct}%"></i></span></span>
+    </button>`;
+  }).join("");
+  box.querySelectorAll("[data-sis]").forEach((b) => {
+    b.onclick = () => { if (selSis === b.dataset.sis) return; selSis = b.dataset.sis; animarTelas = true; renderSysbar(); };
+    b.onkeydown = (e) => {
+      if (e.key === "ArrowDown") { e.preventDefault(); (b.nextElementSibling?.classList.contains("sp-sep") ? b.nextElementSibling.nextElementSibling : b.nextElementSibling)?.focus(); }
+      else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        let a = b.previousElementSibling; if (a?.classList.contains("sp-sep")) a = a.previousElementSibling;
+        (a || el("sisBusca")).focus();
+      }
+    };
+  });
+  const sel = box.querySelector(".sp-item.on");
+  if (sel && !q) { const t = sel.offsetTop - box.offsetTop; if (t < box.scrollTop || t > box.scrollTop + box.clientHeight - 40) box.scrollTop = t - 40; }
 }
 
 function renderSysbar() {
   const efetivas = new Set(dDet.efetivas || []);
   const permsPorSis = {}; (CAT.permissoes || []).forEach((p) => (permsPorSis[p.SISTEMA_CODIGO] ||= []).push(p));
   if (!permsPorSis[selSis]) selSis = (CAT.sistemas.find((s) => permsPorSis[s.CODIGO]) || {}).CODIGO || "";
-  el("sysbar").innerHTML = CAT.sistemas.filter((s) => permsPorSis[s.CODIGO]).map((s) => {
-    const perms = permsPorSis[s.CODIGO]; const on = perms.filter((p) => efetivas.has(p.CODIGO)).length;
-    return `<button class="systab ${s.CODIGO === selSis ? "on" : ""}" aria-pressed="${s.CODIGO === selSis}" data-sis="${esc(s.CODIGO)}">${esc(s.NOME)}<span class="cnt">${on}/${perms.length}</span></button>`;
-  }).join("");
-  el("sysbar").querySelectorAll("[data-sis]").forEach((b) => b.onclick = () => { if (selSis === b.dataset.sis) return; selSis = b.dataset.sis; animarTelas = true; renderSysbar(); });
+  pintarListaSis();
+  const atual = CAT.sistemas.find((s) => s.CODIGO === selSis);
+  const nAtual = (permsPorSis[selSis] || []).length, onAtual = (permsPorSis[selSis] || []).filter((p) => efetivas.has(p.CODIGO)).length;
+  el("sisAtual").innerHTML = atual ? `<span class="sp-rot">Telas de</span><b>${esc(atual.NOME)}</b><span class="sp-cod">${esc(atual.CODIGO)}</span><span class="sp-cont">${onAtual} de ${nAtual} liberadas</span>` : "";
 
   const perms = permsPorSis[selSis] || [];
   const todosCods = perms.map((p) => p.CODIGO);
