@@ -5,8 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Painel ADM PlantSil · Acessos</title>
 <!-- caminho absoluto: o console é servido em /admin, e relativo quebraria sem a barra final -->
-<link rel="icon" type="image/svg+xml" href="/admin/assets/plantsil-emblema.svg" />
-<link rel="alternate icon" type="image/x-icon" href="/admin/assets/favicon.ico" />
+<link rel="icon" type="image/svg+xml" href="/admin/assets/plantsil-emblema.svg?v=25" />
+<link rel="alternate icon" type="image/x-icon" href="/admin/assets/favicon.ico?v=plantsil25" />
+<link rel="apple-touch-icon" href="/admin/assets/plantsil-emblema-180.png" />
 <script>
   // Aplica o tema ANTES da primeira pintura. Se ficasse no script do fim do body,
   // quem usa escuro veria um lampejo branco a cada carregamento.
@@ -1199,13 +1200,19 @@
   /* fio dourado na base do topo: a assinatura dos 25 anos, sem pesar */
   .topbar::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;pointer-events:none;
     background:linear-gradient(90deg,transparent,var(--gold) 18%,var(--gold-l) 50%,var(--gold) 82%,transparent);opacity:.85}
-  .tb-logo{height:36px;width:auto;display:block;flex-shrink:0}
+  /* Logo SEMPRE colorido (pedido 16/11): sobre o verde ele precisa de uma placa creme,
+     com aro dourado — o mesmo tratamento do Portal PCP. */
+  .placa-logo{display:inline-flex;align-items:center;flex-shrink:0;background:#fbf8f1;border-radius:10px;
+    box-shadow:0 1px 3px rgba(0,0,0,.25),inset 0 0 0 1px rgba(180,138,60,.4)}
+  .tb-placa{padding:5px 12px}
+  .tb-logo{height:32px;width:auto;display:block}
+  .login-placa{padding:10px 14px;border-radius:12px;align-self:flex-start}
   .topbar .brand{padding-left:16px;border-left:1px solid rgba(255,255,255,.18);font-size:15.5px;letter-spacing:-.01em}
   .topbar .brand span{border:0;padding:3px 9px;border-radius:999px;background:rgba(217,180,106,.16);
     color:#ecd49e;font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
 
   /* ── marca: login ── */
-  .login-logo{display:block;width:100%;max-width:236px;height:auto;margin-bottom:6px}
+  .login-logo{display:block;width:216px;max-width:100%;height:auto}
   .login-aside{background:linear-gradient(168deg,#21432f 0%,var(--hd) 45%,#0f2219 100%)}
   /* o emblema gigante e apagado no rodapé do painel — textura de marca, não informação */
   .login-aside::before{content:"";position:absolute;right:-70px;bottom:-70px;width:250px;height:250px;
@@ -1217,7 +1224,8 @@
   .login-rodape{color:#d9b46a}
   .login-card .eyebrow{color:var(--gold-d)}
   @media(max-width:880px){
-    .login-logo{width:150px;margin:0}
+    .login-logo{width:140px}
+    .login-placa{padding:6px 10px;align-self:center}
     .login-aside h2{display:none}
     .login-aside::before{display:none}
   }
@@ -1342,7 +1350,8 @@
   #toast{border-left-color:var(--gold)}
 
   @media(max-width:720px){
-    .tb-logo{height:26px}
+    .tb-logo{height:24px}
+    .tb-placa{padding:4px 9px}
     .topbar .brand{display:none}
     .page{padding:20px 16px}
     .kpis{grid-template-columns:repeat(2,1fr)}
@@ -1352,6 +1361,78 @@
   @media (prefers-reduced-motion: reduce){
     .kpi.c-risco.tem::after{animation:none}
   }
+  /* ══ LOGIN EM TELA CHEIA (16/11) — arte grande + formulário no canto, como o Portal PCP ══
+     O cartão antigo (.login-wrap) saiu do HTML; o CSS dele ficou inerte acima. */
+  #loginView{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(400px,.85fr);min-height:100vh;padding:0;place-items:stretch;background:var(--canvas)}
+  .lx-arte{position:relative;overflow:hidden;isolation:isolate;display:flex;flex-direction:column;padding:34px 52px;color:#f4f1ea;
+    background:radial-gradient(120% 90% at 20% 10%,#2a5a43 0%,#1e3d2f 45%,#0f2118 100%);
+    --malha:#6e9c8a;--malha-op:.16;--pulso:#d9b46a}
+  /* a malha era fixa na tela toda; agora mora só dentro da arte */
+  .lx-arte #loginMalha{position:absolute;inset:0;width:100%;height:100%;z-index:-1}
+  .lx-luz{position:absolute;width:640px;height:640px;right:-200px;top:-240px;border-radius:50%;z-index:-1;pointer-events:none;
+    background:radial-gradient(circle,rgba(217,180,106,.3),transparent 65%);animation:lxFlutua 12s ease-in-out infinite}
+  @keyframes lxFlutua{50%{transform:translate(-40px,30px) scale(1.06)}}
+  .lx-topo{position:relative}
+  .lx-placa{padding:10px 16px;border-radius:14px;box-shadow:0 10px 30px -8px rgba(0,0,0,.5),inset 0 0 0 1px rgba(180,138,60,.45);animation:lxSobe .8s var(--re) both}
+  .lx-placa img{height:52px;width:auto;display:block}
+  .lx-chamada{position:relative;margin-top:auto;margin-bottom:15vh;max-width:580px;animation:lxSobe .9s .12s var(--re) both}
+  .lx-selo{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.22em;color:#1e3d2f;padding:5px 13px;border-radius:20px;
+    background:linear-gradient(135deg,#ecd08f,#b48a3c);box-shadow:0 6px 18px rgba(180,138,60,.35)}
+  .lx-chamada h1{font-family:Georgia,"Times New Roman",serif;font-weight:400;font-size:clamp(36px,4.2vw,58px);line-height:1.04;margin:18px 0 14px;letter-spacing:-.01em}
+  .lx-chamada h1 em{font-style:italic;color:transparent;background:linear-gradient(90deg,#f1d9a0,#c99a45 60%,#f1d9a0);background-size:200% auto;
+    -webkit-background-clip:text;background-clip:text;animation:lxBrilho 6s linear infinite}
+  @keyframes lxBrilho{to{background-position:200% center}}
+  .lx-chamada p{font-size:15px;line-height:1.6;color:#c9d6cc;max-width:480px;margin:0}
+  .lx-numeros{list-style:none;padding:0;margin:26px 0 0;display:flex;gap:10px}
+  .lx-numeros li{flex:1 1 0;min-width:0;display:flex;flex-direction:column;gap:2px;padding:12px 14px;border-radius:12px;
+    border:1px solid rgba(244,241,234,.14);background:rgba(8,20,14,.4);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+  .lx-numeros b{font-size:20px;color:#ecd08f}
+  .lx-numeros span{font-size:11.5px;color:#a8b8ad}
+  .lx-floresta{position:absolute;left:0;right:0;bottom:0;width:100%;height:90px;fill:#0b1810;opacity:.9;z-index:-1}
+
+  .lx-lado{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 28px;
+    background:radial-gradient(90% 70% at 70% 0%,var(--card-2) 0%,var(--canvas) 60%,var(--hov-2) 100%)}
+  .lx-tema{position:absolute;top:20px;right:22px}
+  .lx-cartao{width:min(400px,100%);display:flex;flex-direction:column;animation:lxSobe .8s .08s var(--re) both}
+  .lx-emblema{width:66px;height:66px;margin-bottom:18px;filter:drop-shadow(0 8px 18px rgba(30,61,47,.25))}
+  .lx-cartao h2{font-family:Georgia,"Times New Roman",serif;font-weight:400;font-size:33px;color:var(--accent-d);margin:0 0 6px;letter-spacing:-.01em}
+  .lx-sub{color:var(--ink-2);font-size:14px;line-height:1.5;margin:0 0 24px}
+  .lx-cartao .lg-campo label{font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
+  .lx-cartao .lg-box .inp{height:50px;border-radius:12px;border-width:1.5px;background:var(--card);font-size:15px}
+  .lx-cartao .lg-box .ico-l{left:15px;width:17px;height:17px}
+  .lx-cartao .lg-box .inp{padding-left:42px}
+  .lx-entrar{position:relative;overflow:hidden;width:100%;justify-content:center;height:52px;margin-top:10px;border-radius:12px;font-size:15.5px;letter-spacing:.02em;
+    border:0;background:linear-gradient(135deg,#2d6a4f,#1e3d2f);color:#f4f1ea;box-shadow:0 10px 24px -8px rgba(30,61,47,.55);
+    transition:transform .15s,box-shadow .15s}
+  .lx-entrar::after{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 30%,rgba(236,208,143,.35) 50%,transparent 70%);transform:translateX(-100%);transition:transform .7s}
+  .lx-entrar:hover::after{transform:translateX(100%)}
+  .lx-entrar:hover{transform:translateY(-1px);box-shadow:0 14px 30px -8px rgba(30,61,47,.6);background:linear-gradient(135deg,#2d6a4f,#1e3d2f)}
+  .lx-seta{color:#ecd08f;font-size:18px;transition:transform .15s}
+  .lx-entrar:hover .lx-seta{transform:translateX(4px)}
+  .lx-entrar.loading .lx-seta{opacity:0}
+  .lx-entrar.loading::after{background:none;inset:auto;top:50%;left:50%;transform:none;transition:none;border-color:rgba(255,255,255,.4);border-top-color:#fff}
+  .lx-iam{display:flex;align-items:flex-start;justify-content:center;gap:8px;margin-top:22px;padding-top:18px;border-top:1px dashed var(--line-h);
+    font-size:12.5px;line-height:1.5;color:var(--ink-3);text-align:center}
+  .lx-iam svg{width:16px;height:16px;flex-shrink:0;color:var(--gold);margin-top:1px}
+  .lx-iam b{color:var(--accent-d)}
+  .lx-rodape{position:absolute;bottom:18px;font-size:11.5px;letter-spacing:.06em;color:var(--ink-3)}
+  @keyframes lxSobe{from{opacity:0;transform:translateY(14px)}}
+
+  @media(max-width:960px){
+    #loginView{grid-template-columns:1fr;grid-template-rows:auto 1fr}
+    .lx-arte{padding:22px 20px 34px}
+    .lx-placa img{height:38px}
+    .lx-chamada{margin:26px 0 0}
+    .lx-chamada h1{font-size:30px}
+    .lx-chamada p,.lx-numeros{display:none}
+    .lx-floresta{height:36px}
+    .lx-lado{padding:30px 18px 60px}
+    .lx-tema{top:14px;right:14px}
+    .lx-emblema{display:none}
+  }
+  @media (prefers-reduced-motion: reduce){
+    .lx-luz,.lx-chamada h1 em,.lx-placa,.lx-chamada,.lx-cartao{animation:none}
+  }
 </style>
 </head>
 <body>
@@ -1359,10 +1440,9 @@
 <!-- LOGIN -->
 <div id="loginView">
 
-  <!-- Malha de fundo. viewBox 1440×864 com passo 48: o centro (720,432) cai exatamente
-       num cruzamento, então os pulsos chegam pelas linhas, não entre elas.
-       "slice" mantém esse centro no centro da tela em qualquer proporção. -->
-  <svg id="loginMalha" viewBox="0 0 1440 864" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+  <!-- ARTE: ocupa a tela; o formulário fica no canto direito (mesmo desenho do Portal PCP) -->
+  <section class="lx-arte" aria-hidden="false">
+    <svg id="loginMalha" viewBox="0 0 1440 864" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
     <defs>
       <pattern id="mLinhas" width="48" height="48" patternUnits="userSpaceOnUse">
         <path d="M48 0H0V48" fill="none" stroke-width="1"/>
@@ -1424,53 +1504,47 @@
       <g style="--dur:4.8s;--atraso:-1.6s"><path class="cm-halo" pathLength="100" d="M1152 864V600Q1152 576 1128 576H744Q720 576 720 552V432"/><path class="cm-core" pathLength="100" d="M1152 864V600Q1152 576 1128 576H744Q720 576 720 552V432"/></g>
     </g>
   </svg>
-
-  <div class="login-wrap">
-
-    <aside class="login-aside">
-      <img class="login-logo" src="/admin/assets/plantsil-25anos-branco.svg" alt="PlantSil Florestal · 25 anos" />
-      <h2>Painel ADM</h2>
-      <p class="frase">O ponto único de identidade: quem existe, o que cada um pode abrir e o registro de tudo que foi mudado.</p>
-      <ul class="login-lista">
-        <li>
-          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 1.8 13.3 4v3.6c0 3.2-2.2 5.6-5.3 6.6-3.1-1-5.3-3.4-5.3-6.6V4z"/><path d="m5.9 7.9 1.5 1.5 2.8-2.9"/></svg>
-          <span>Uma senha só, válida em todos os sistemas PlantSil</span>
-        </li>
-        <li>
-          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.3" y="2.5" width="11.4" height="4" rx="1.2"/><rect x="2.3" y="9.5" width="11.4" height="4" rx="1.2"/></svg>
-          <span>Liberação de telas por pessoa e por escopo</span>
-        </li>
-        <li>
-          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="8" r="6.2"/><path d="M8 4.4V8l2.5 1.5"/></svg>
-          <span>Auditoria com autor, data e detalhe de cada ação</span>
-        </li>
+    <div class="lx-luz" aria-hidden="true"></div>
+    <header class="lx-topo">
+      <span class="placa-logo lx-placa"><img src="/admin/assets/plantsil-25anos-cor.svg" alt="PlantSil Florestal · 25 anos" /></span>
+    </header>
+    <div class="lx-chamada">
+      <span class="lx-selo">PAINEL ADM · IAM</span>
+      <h1>Uma identidade,<br /><em>todos os sistemas.</em></h1>
+      <p>Quem existe, o que cada pessoa pode abrir e o registro de tudo que foi mudado — num lugar só, para todos os sistemas PlantSil.</p>
+      <ul class="lx-numeros">
+        <li><b>1 senha</b><span>vale em todos os sistemas</span></li>
+        <li><b>Por tela</b><span>liberação por pessoa e escopo</span></li>
+        <li><b>100%</b><span>das mudanças auditadas</span></li>
       </ul>
-      <div class="login-rodape">Acesso restrito · TI PlantSil</div>
-    </aside>
+    </div>
+    <svg class="lx-floresta" viewBox="0 0 1200 120" preserveAspectRatio="none" aria-hidden="true">
+      <path d="M0 120V96l18-30 14 26 16-52 18 50 12-22 20 34 16-60 20 58 14-28 18 32 22-70 22 68 14-30 16 34 20-56 20 54 12-24 18 30 24-74 24 72 14-32 18 36 20-58 18 56 14-26 20 32 22-66 22 64 12-28 18 32 20-52 20 50 16-30 18 34 24-72 22 70 14-30 16 32 20-60 22 58 12-26 18 30 22-68 22 66 14-28 18 32 20-54 18 52 14-30 20 36 24-70 22 68 14-28 16 30 20-58 20 56 14-26 18 30 22-64 22 62 12-28 18 32 20-50 20 48 16-28 18 32 22-62 22 60 14-30 16 34 20-56 20 54V120z"/>
+    </svg>
+  </section>
 
-    <form class="login-card" id="loginForm" novalidate>
-      <div class="login-topo">
-        <div>
-          <div class="eyebrow">Entrar</div>
-          <h1>Bem-vindo</h1>
-          <div class="sub">Use suas credenciais PlantSil para continuar.</div>
-        </div>
-        <div class="tema sup" id="temaLogin" role="group" aria-label="Tema da interface">
-          <span class="tema-ind" aria-hidden="true"></span>
-          <button type="button" data-tema="claro" title="Tema claro" aria-label="Tema claro" aria-pressed="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.2v2.4M12 19.4v2.4M4.2 12H1.8M22.2 12h-2.4M6.5 6.5L4.8 4.8M19.2 19.2l-1.7-1.7M17.5 6.5l1.7-1.7M4.8 19.2l1.7-1.7"/></svg>
-          </button>
-          <button type="button" data-tema="escuro" title="Tema escuro" aria-label="Tema escuro" aria-pressed="false">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.5 14.6A8.6 8.6 0 1 1 9.4 3.5a6.9 6.9 0 0 0 11.1 11.1z"/></svg>
-          </button>
-        </div>
-      </div>
+  <!-- CANTO: o formulário -->
+  <section class="lx-lado">
+    <div class="tema sup lx-tema" id="temaLogin" role="group" aria-label="Tema da interface">
+      <span class="tema-ind" aria-hidden="true"></span>
+      <button type="button" data-tema="claro" title="Tema claro" aria-label="Tema claro" aria-pressed="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.2v2.4M12 19.4v2.4M4.2 12H1.8M22.2 12h-2.4M6.5 6.5L4.8 4.8M19.2 19.2l-1.7-1.7M17.5 6.5l1.7-1.7M4.8 19.2l1.7-1.7"/></svg>
+      </button>
+      <button type="button" data-tema="escuro" title="Tema escuro" aria-label="Tema escuro" aria-pressed="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.5 14.6A8.6 8.6 0 1 1 9.4 3.5a6.9 6.9 0 0 0 11.1 11.1z"/></svg>
+      </button>
+    </div>
+
+    <form class="lx-cartao" id="loginForm" novalidate>
+      <img class="lx-emblema" src="/admin/assets/plantsil-emblema.svg" alt="" />
+      <h2>Bem-vindo de volta</h2>
+      <p class="lx-sub">Entre com seu usuário PlantSil — o mesmo de todos os sistemas.</p>
 
       <div class="lg-campo">
-        <label for="lUser">Login</label>
+        <label for="lUser">Usuário</label>
         <div class="lg-box">
           <svg class="ico-l" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="5.4" r="2.9"/><path d="M2.6 13.6a5.4 5.4 0 0 1 10.8 0"/></svg>
-          <input class="inp" id="lUser" autocomplete="username" placeholder="nome.sobrenome" autofocus />
+          <input class="inp" id="lUser" autocomplete="username" placeholder="nome.sobrenome" spellcheck="false" autofocus />
         </div>
       </div>
 
@@ -1489,7 +1563,7 @@
         </div>
       </div>
 
-      <button class="btn pri">Entrar</button>
+      <button class="btn pri lx-entrar"><span>Entrar</span><span class="lx-seta" aria-hidden="true">→</span></button>
 
       <div class="lg-err" id="lErr" role="alert" aria-live="polite">
         <div><div class="cx">
@@ -1498,16 +1572,19 @@
         </div></div>
       </div>
 
-      <p class="login-ajuda">Não consegue entrar? Procure a equipe de TI.</p>
+      <div class="lx-iam">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.8 4.5 6v5.6c0 4.6 3.2 8.5 7.5 9.6 4.3-1.1 7.5-5 7.5-9.6V6z"/><path d="m8.8 12 2.2 2.2 4.2-4.4"/></svg>
+        <span>Acesso restrito à <b>TI PlantSil</b> · não consegue entrar? Procure a equipe de TI.</span>
+      </div>
     </form>
-
-  </div>
+    <footer class="lx-rodape">PlantSil Florestal · 25 anos cultivando o futuro</footer>
+  </section>
 </div>
 
 <!-- APP -->
 <div id="appView" class="hidden">
   <div class="topbar">
-    <img class="tb-logo" src="/admin/assets/plantsil-25anos-branco.svg" alt="PlantSil Florestal · 25 anos" />
+    <span class="placa-logo tb-placa"><img class="tb-logo" src="/admin/assets/plantsil-25anos-cor.svg" alt="PlantSil Florestal · 25 anos" /></span>
     <div class="brand">Painel ADM<span>identidade &amp; acessos</span></div>
     <div class="tema" id="tema" role="group" aria-label="Tema da interface">
       <span class="tema-ind" aria-hidden="true"></span>
